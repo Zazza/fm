@@ -1,0 +1,192 @@
+@charset "UTF-8";
+
+/** 
+ * Default CSS Drop-Down Menu Theme
+ *
+ * @file		default.css
+ * @name		Default
+ * @version		0.1.1
+ * @type		transitional
+ * @browsers	Windows: IE5+, Opera7+, Firefox1+
+ *				Mac OS: Safari2+, Firefox2+
+ *
+ * @link		http://www.lwis.net/
+ * @copyright	2008 Live Web Institute
+ *
+ * Module Classes: *.dir {} *.on {} *.open {} li.hover {} li.first {} li.last {}
+ * Expected directory tag - li
+ *
+ */
+
+/*-------------------------------------------------/
+ * @section		Base Drop-Down Styling
+ * @structure	ul (unordered list)
+ *				ul li (list item)
+ *				ul li a (links)
+ *				/*\.class|(li|a):hover/
+ * @level sep	ul
+ */
+ul.dropdown {
+	font-weight: bold;
+}
+
+ul#dashajax {
+	width: 400px;
+	border: 1px solid #AAA;
+	padding-top: 10px;
+	background-color: #FFF;
+}
+
+ul#dashajax li {
+	border-right: 0 none;
+	background: #FFF;
+}
+
+ul#dashajax li:hover {
+	background: #FFF;
+
+}
+
+ul#dashajax a {
+	color: #048;
+}
+
+ul.dropdown li {
+	padding: 7px 10px;
+	border-style: solid;
+	border-width: 0 1px 0 0;
+	border-color: #375174;
+	color: #FFF;
+	background: #708eaa;
+}
+
+ul.dropdown li.topmenubutton {
+	background-color: transparent;
+	border: 0 none;
+	padding: 7px 10px;
+	color: #000;
+	cursor: pointer;
+	font-weight: normal;
+}
+
+ul.dropdown li.topmenubutton a {
+	color: #000;
+	cursor: pointer;
+	font-weight: normal;
+}
+
+ul.dropdown li.topmenubutton:hover {
+	background-color: #708eaa;
+	color: #FFF;
+}
+
+ul.dropdown li.topmenubutton:hover a.dir, ul.dropdown li.topmenubutton a, ul.dropdown li.topmenubutton:hover a.unhover {
+	color: #FFF;
+}
+
+ul.dropdown li.topmenubutton a.dir, ul.dropdown li.topmenubutton a.unhover {
+	color: #000;
+}
+
+ul.topdropdown {
+	z-index: 596;
+}
+
+ul.taskbutton {
+	z-index: 595;
+}
+
+ul.taskbutton li {
+	padding: 7px 10px;
+	font-weight: normal;
+	border-width: 0px;
+	border-color: #FFF;
+	background-color: transparent;
+	color: #000;
+}
+
+ul.dropdown li > a {
+	color: #FFF;
+}
+
+ul.dropdown li:hover > a {
+	color: #000;
+}
+
+ul.taskbutton li > a {
+	color: #000;
+}
+
+ul.dropdown li.hover,ul.dropdown li:hover {
+	background-color: #DFE4EA;
+	color: #000;
+}
+
+.mainsub {
+	background: #708eaa;	
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#708eaa', endColorstr='#496a9d');
+	background: -webkit-gradient(linear, left top, left bottom, from(#708eaa), to(#496a9d));
+	background: -moz-linear-gradient(top, #708eaa,  #496a9d);
+}
+
+ul.dropdown a {
+	color: #FFF;
+	text-decoration: none;
+}
+
+ul.taskbutton a {
+	color: #000;
+	text-decoration: none;
+}
+
+ul.dropdown a:hover {
+	color: #000;
+}
+
+ul.dropdown a:active {
+	color: #ffa500;
+}
+
+/* -- level mark -- */
+ul.dropdown ul {
+	width: 150px;
+	margin-top: -1px;
+}
+
+ul.dropdown ul li {
+	font-weight: normal;
+}
+
+/*-------------------------------------------------/
+ * @section		Support Class `dir`
+ * @level sep	ul, .class
+ */
+ul.dropdown *.dir {
+	padding-right: 20px;
+	background-image: url(menu/nav-arrow-down.png);
+	background-position: 100% 50%;
+	background-repeat: no-repeat;
+}
+
+/* -- Components override -- */
+ul.dropdown-horizontal ul *.dir {
+	padding-right: 15px;
+	background-image: url(menu/nav-arrow-right.png);
+	background-position: 100% 50%;
+	background-repeat: no-repeat;
+}
+
+ul.dropdown-upward *.dir {
+	background-image: url(menu/nav-arrow-top.png);
+}
+
+ul.dropdown-vertical *.dir,ul.dropdown-upward ul *.dir {
+	background-image: url(menu/nav-arrow-right.png);
+}
+
+ul.dropdown-vertical-rtl *.dir {
+	padding-right: 10px;
+	padding-left: 15px;
+	background-image: url(menu/nav-arrow-left.png);
+	background-position: 0 50%;
+}

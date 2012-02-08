@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="icon" type="image/gif" href="{{ registry.uri }}favicon.png" />
+<meta name="description" content="FM" />
+<meta name="keywords" content="FM" />
+<title>{{ title }}</title>
+<link href="{{ registry.uri }}css/Aristo.css" rel="stylesheet" type="text/css" />
+<link href="{{ registry.uri }}css/main.css" rel="stylesheet" media="all" />
+<link href="{{ registry.uri }}css/jquery.treeview.css" rel="stylesheet" type="text/css" />
+<link href="{{ registry.uri }}css/dropdown.css" rel="stylesheet" type="text/css" />
+<link href="{{ registry.uri }}css/default.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="{{ registry.uri }}js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/jquery.timers.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/jquery.treeview.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/scripts.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/fm.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/jquery.watermark.min.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/users.js"></script>
+
+<script type="text/javascript">
+    fmInit('{{ registry.uri }}');
+</script>
+</head>
+
+<body style="padding-top: 30px">
+
+<!-- TOP -->
+<div class="topbar">
+<div class="downsh">
+	<div id="profile">{{ registry.ui.login }}</div>
+	
+	<a href="{{ registry.uri }}">Файловый менеджер</a>
+	{% if registry.ui.admin %}
+	<a href="{{ registry.uri }}users/">Пользователи</a>
+	{% endif %}
+	
+	{% if not admin %}
+
+	С выделенными:&nbsp;
+	<input onclick="delmany()" type="button" style="padding: 3px 0; width: 70px" value="Удалить" />	
+	<input onclick="copyFiles()" type="button" style="background: url('{{ registry.uri }}img/clipboard-sign.png') no-repeat scroll 10px 2px transparent; padding: 3px 0; width: 40px" />
+	<input onclick="pastFiles()" type="button" style="background: url('{{ registry.uri }}img/clipboard-sign-out.png') no-repeat scroll 10px 2px transparent; padding: 3px 0; width: 40px" />
+	
+	<span id="clip">{{ clip }}</span>
+
+	<div style="float: right">
+		<input type="text" name="dirname" id="fm_dirname" />
+		<input type="button" onclick="createDir()" value="Создать" style="font-size: 12px" />
+		
+		{% if registry.ui.admin %}
+		<input onclick="admin()" type="button" value="Админ." style="font-size: 12px" />
+		{% endif %}
+	
+		{% else %}
+		<input onclick="admin()" type="button" value="Админ." style="font-size: 12px" />
+		{% endif %}
+	</div>
+</div>
+</div>
+<!-- /TOP -->
+
+<!-- CONTENT -->
+<div id="mainContent">
+
+<div id="rightMainContent">
+    {{ main_content }}
+</div>
+
+</div>
+<!-- /CONTENT -->
+
+</body>
+</html>
