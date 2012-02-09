@@ -1,3 +1,5 @@
+<div style="font-weight: bold; margin-bottom: 20px">Текущая папка: [{{ shPath }}]</div>
+
 <div style="overflow: hidden">
 
 {% for part in dirs %}
@@ -15,9 +17,9 @@
 	</div>
 </div>
 {% else %}
-<div id="fm_up">
-	<img src="{{ registry.uri }}img/back.png" style="float: left; cursor: pointer; position: relative; top: 2px" onclick="chdir('{{ part.name }}')" />
-	<div style="cursor: pointer; margin-left: 20px; font-size: 12px" onclick="chdir('{{ part.name }}')">[{{ part.name }}]</div>
+<div id="fm_dirs" style="text-align: center; cursor: pointer">
+	<div onclick="chdir('{{ part.name }}')"><img src="{{ registry.uri }}img/ftypes/folder.png" style="width: 50px{{ opacity }}" alt="[DIR]" /></div>
+	<div onclick="chdir('{{ part.name }}')" style="font-weight: bold">[..]</div>
 </div>
 {% endif %}
 {% endfor %}
@@ -35,7 +37,7 @@
 	
 	<div style="color: #777">{{ part.date }}</div>
 	<div style="color: #777">размер: {{ part.size }}</div>
-	{% if part.share %}<div style="color: green">Share</div>{% endif %}
+	<div id="fs_{{ part.id }}" style="color: green; font-weight: bold; {% if part.share %}display: block{% else %}display: none{% endif %}">Share</div>
 </div>
 {% else %}
 <div id="fm_empty" style="text-align: center; width: 100%">пусто</div>
@@ -49,17 +51,15 @@
 <input name="lastIdRow" id="fm_lastIdRow" value="{{ i }}" type="hidden" />
 <input name="max" id="fm_max" value="{{ i }}" type="hidden" />
 
-{{ javascript }}
 <script type="text/javascript">
 xOffset = -15;
 yOffset = 15;
-
-setDrag();
 
 pre();
 
 $(function(){
 	$("#tabs").tabs();
+	$("#clip").html('{{ clip }}');
 	
 	{% if admin %}
 	$("#admbtn").addClass("fmadmbtn_en");
@@ -96,23 +96,6 @@ function delmany() {
     update();
 };
 
-function setDrag() {
-    $('.fm_pre').draggable({
-        helper : 'clone'
-    })
-};
-
-function attach() {
-	for (i = 1; i <= parseInt($("#fm_max").val()); i++){
-        if ($("#fm_file" + i).attr("class") == "fm_sellabel") {
-        	var dir = getCurDirName();
-            var fname = $("#fm_filename" + i + "").attr("name");
-            
-            $("#attach_files").append("<input type='hidden' name='attaches[]' value='{{ registry.path.root }}/{{ registry.path.upload }}" + dir + fname + "' /><p><img border='0' src='{{ registry.uri }}img/paper-clip-small.png' alt='attach' style='position: relative; top: 4px; left: 1px' />" + fname + "</p>");
-        }
-    };
-}
-
 function copyFiles() {
     var selfiles = "";
     for (i = 1; i <= parseInt($("#fm_max").val()); i++){
@@ -138,13 +121,23 @@ function pre() {
 		var md5 = getMD5Name(fname);
 		
 		$("#share").attr("onchange", "share('" + md5 + "')");
+		
+		var data = getShare(md5);
+		if (data) {
+			$("#share").attr("checked", "checked");
+			$("#shareName").show();
+			$(".fname").text(data);
+		} else {
+			$("#share").removeAttr("checked");
+			$("#shareName").hide();
+		}
 
 		$("#fid").val(md5);
 
 		var text = getFileText(md5);
 		$("#dfiletext").html(text);
 		
-		$("#dopenfile").html("<b>Скачать файл: </b><a style='color: blue' href='{{ registry.uri }}fm/attach/?filename=" + fname + "' id='fdname'>" + fname + "</a>");
+		$("#dopenfile").html("<b>Скачать файл: </b><a style='color: blue' href='{{ registry.uri }}attach/?filename=" + fname + "' id='fdname'>" + fname + "</a>");
 
 		var history = getFileHistory(md5);
 		$("#fdhistory").html(history);

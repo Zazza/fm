@@ -1,1 +1,1 @@
-<div class="title" style="margin-left: 50px">Страница не найдена</div>
+<h2>Страница не найдена</h2>

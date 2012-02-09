@@ -1,4 +1,4 @@
-<div class="sel" style="width: 150px; margin-bottom: 10px; font-weight: bold"><img border="0" style="vertical-align: middle;" alt="plus" src="{{ registry.uri }}img/plus-button.png" />&nbsp;<a href="{{ registry.uri }}users/addgroup/" style="text-decoration: none">Новая группа</a></div>
+<div class="button" style="font-weight: bold"><img border="0" style="vertical-align: middle;" alt="plus" src="{{ registry.uri }}img/plus-button.png" />&nbsp;<a href="{{ registry.uri }}users/addgroup/" style="text-decoration: none">Новая группа</a></div>
 
 <table cellpadding="3" cellspacing="3" style="margin-bottom: 20px">
 <tr>
@@ -29,7 +29,7 @@
 {% endfor %}
 </table>
 
-<div class="sel" style="width: 170px; margin-bottom: 10px; font-weight: bold"><img border="0" style="vertical-align: middle;" alt="plus" src="{{ registry.uri }}img/plus-button.png" /> <a href="{{ registry.uri }}users/adduser/" style="text-decoration: none">Новый пользователь</a></div>
+<div class="button" style="font-weight: bold"><img border="0" style="vertical-align: middle;" alt="plus" src="{{ registry.uri }}img/plus-button.png" /> <a href="{{ registry.uri }}users/adduser/" style="text-decoration: none">Новый пользователь</a></div>
 
 
 

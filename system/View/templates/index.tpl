@@ -6,12 +6,10 @@
 	    </noscript>
 	</div>
 	
-	<div style="height: 13px; border: 1px solid #DEDEDE; font-size: 11px; font-weight: bold; margin: 0 0 10px 0; padding: 4px; text-align: left">
-	<div style="float: left; position: relative; bottom: 3px"><span id="fm_sel">+</span>/<span id="fm_unsel">-</span></div>
-	<div style="float: right; position: relative; bottom: 3px"><span style="font-size: 10px; font-weight: bold"><a onclick="empty()" style="cursor: pointer; text-decoration: underline">очистить лог загрузки</a></span></div>
+	<div id="servTop">
+		<div id="servSel"><span id="fm_sel">+</span>/<span id="fm_unsel">-</span></div>
+		<div id="servClear"><a onclick="empty()" style="cursor: pointer">очистить лог загрузки</a></div>
 	</div>
-	
-	<p style="font-size: 11px; font-weight: bold; padding: 0; margin: 4px 0 10px 0">{{ shPath }}</p>
 
 	<div id="fm_filesystem">
 		<div style="text-align: center; margin-top: 30px"><img src="{{ registry.uri }}img/ajax-loader.gif" alt="ajax-loader.gif" border="0" /></div>
@@ -32,8 +30,13 @@
 		
 		<div id="fdmain" class="tabcont" style="text-align: left">
 			<input type="hidden" id="fid" />
-			<div id="dopenfile" class="button"></div>
-			<div class="button" style="margin-top: 10px"><label><input id="share" type="checkbox" name="share" />&nbsp;Share</label></div>
+			<div id="dopenfile"></div>
+			
+			<div id="wndShare">
+				<div class="button"><label><input id="share" type="checkbox" name="share" />&nbsp;Share</label></div>
+				<div style="display: none; padding-top: 10px" id="shareName"><b>URL: </b>{{ registry.siteName }}{{ registry.uri }}download/?filename=<span class="fname"></span></div>
+			</div>
+			
 			<div id="dfiletext" style="margin-top: 10px"></div>
 			<div style="margin-top: 20px">
 				<textarea id="fText" style="height: 100px; width: 340px"></textarea>

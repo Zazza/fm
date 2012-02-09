@@ -1,21 +1,12 @@
 <?php
-class Controller_Fm_Attach extends Controller_Fm {
+class Controller_Attach extends Engine_Controller {
 	
 	function index() {
+		$mfile = new Model_File();
+		
 		if (isset($_GET["md5"])) {
 			if (!strpos($_GET["md5"], "/")) {
-				$sql = "SELECT f.filename AS `filename`, h.uid, r.right AS `right`
-				FROM fm_fs AS f
-				LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
-				LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-				LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
-				WHERE f.md5 = :md5 AND r.right != 'NULL'
-				LIMIT 1";
-		        
-		        $res = $this->registry['db']->prepare($sql);
-				$param = array(":md5" => $_GET["md5"]);
-				$res->execute($param);
-				$data = $res->fetchAll(PDO::FETCH_ASSOC);
+				$data = $mfile->attachFromMD5($_GET["md5"]);
 				
 				$flag = false;
 				if ($this->registry["ui"]["id"] == $data[0]["uid"]) {
@@ -74,18 +65,7 @@ class Controller_Fm_Attach extends Controller_Fm {
 					$curdir = 0;
 				}
 
-		        $sql = "SELECT f.md5 AS `md5`, h.uid, r.right AS `right`
-				FROM fm_fs AS f
-				LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
-				LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-				LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
-				WHERE f.filename = :filename AND f.pdirid = :pdirid AND f.close = 0
-				LIMIT 1";
-		        
-		        $res = $this->registry['db']->prepare($sql);
-				$param = array(":filename" => $filename, ":pdirid" => $curdir);
-				$res->execute($param);
-				$data = $res->fetchAll(PDO::FETCH_ASSOC);
+				$data = $data = $mfile->attachFromName($filename, $curdir);
 				
 				$flag = false;
 				if ($this->registry["ui"]["id"] == $data[0]["uid"]) {
@@ -132,6 +112,8 @@ class Controller_Fm_Attach extends Controller_Fm {
 				}
 			}
 		}
+		
+		exit();
 	}
 }
 ?>

@@ -43,11 +43,7 @@ class Controller_Users extends Engine_Controller {
                 
                 Controller_Users_Addgroup::index();
                 
-			} elseif ($this->args[0] == "admin") {
-               
-               	Controller_Users_Admin::index();
-                
-            } elseif ($this->args[0] == "structure") {
+			} elseif ($this->args[0] == "structure") {
                 
                 Controller_Users_Structure::index();
 
@@ -62,10 +58,6 @@ class Controller_Users extends Engine_Controller {
            } elseif ($this->args[0] == "edituser") {
                 
                 Controller_Users_Edituser::index();
-                
-            } elseif ($this->args[0] == "tasks") {
-                
-                Controller_Users_Tasks::index();
                 
             }
         } else {

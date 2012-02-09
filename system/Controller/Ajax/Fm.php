@@ -1,19 +1,16 @@
 <?php
 class Controller_Ajax_Fm extends Engine_Ajax {
-    private $count = 0;
-    
-    private $file = array();
-    
-    private $tree = null;
-    
-    private $muser;
-    private $mfile;
+    private $_file = array();
+    private $_tree = null;
+    private $_muser;
+    private $_mfile;
+    private $_desc = null;
     
     function __construct() {
     	parent::__construct();
     	
-    	$this->muser = new Model_User();
-    	$this->mfile = new Model_File();
+    	$this->_muser = new Model_User();
+    	$this->_mfile = new Model_File();
     }
     
     function save() {
@@ -22,77 +19,18 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     }
 
 	function getFileParamsFromMd5($md5) {
-        $sql = "SELECT f.id, f.filename, f.size, h.timestamp, MIN(f1.id) AS parent_id
-        FROM fm_fs AS f
-        LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-        LEFT JOIN fm_fs AS f1 ON (f.filename = f1.filename)
-        WHERE f.md5 = :md5
-        LIMIT 1";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":md5" => $md5);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
-		
-		$right[0]["count"] = 0;
-		
-		$sql = "SELECT COUNT(id) AS count FROM fm_fs_chmod WHERE fid = :fid LIMIT 1";
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":fid" => $data[0]["parent_id"]);
-		$res->execute($param);
-		$right = $res->fetchAll(PDO::FETCH_ASSOC);
-		
-		if ($right[0]["count"] == 1) {
-			$data[0]["right"] = true;
-		} else {
-			$data[0]["right"] = false;
-		}
-		
-		$this->file = $data[0];
+		$this->_file = $this->_mfile->getFileParamsFromMd5($md5);
 	}
 	
 	function getFileParamsFromName($filename) {
-		$fm = & $_SESSION["fm"];
-		if (isset($fm["dir"])) {
-        	$curdir = $fm["dir"];
-        } else {
-			$curdir = 0;
-		}
-        
-        $sql = "SELECT f.id, f.md5, f.size, h.timestamp, MIN(f1.id) AS parent_id
-        FROM fm_fs AS f
-        LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-        LEFT JOIN fm_fs AS f1 ON (f.filename = f1.filename)
-        WHERE f.filename = :filename AND f.pdirid = :pdirid AND f.close = 0
-        LIMIT 1";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":filename" => $filename, ":pdirid" => $curdir);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
-
-		$right[0]["count"] = 0;
-		
-		$sql = "SELECT COUNT(id) AS count FROM fm_fs_chmod WHERE fid = :fid LIMIT 1";
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":fid" => $data[0]["parent_id"]);
-		$res->execute($param);
-		$right = $res->fetchAll(PDO::FETCH_ASSOC);
-		
-		if ($right[0]["count"] == 1) {
-			$data[0]["right"] = true;
-		} else {
-			$data[0]["right"] = false;
-		}
-		
-		$this->file = $data[0];
+		$this->_file = $this->_mfile->getFileParamsFromName($filename);
 	}
 	
 	function getFileName($params) {
 		$name = rawurldecode($params["name"]);
 		$array = $this->getFileParamsFromName($name);
 		
-		echo $this->file["md5"];
+		echo $this->_file["md5"];
 	}
 	
 	function admin() {
@@ -121,16 +59,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 		}
 		
 		if ($curdir != 0) {
-			$sql = "SELECT d.uid, r.right AS `right`
-    		FROM fm_dirs AS d
-    		LEFT JOIN fm_dirs_chmod AS r ON (r.did = d.id)
-    		WHERE d.id = :id
-    		LIMIT 1";
-			
-			$res = $this->registry['db']->prepare($sql);
-			$param = array(":id" => $curdir);
-			$res->execute($param);
-			$right = $res->fetchAll(PDO::FETCH_ASSOC);
+			$right = $this->_mfile->getRight($curdir);
 		
 			$flag = false;
 			if ($this->registry["ui"]["id"] == $right[0]["uid"]) {
@@ -169,21 +98,10 @@ class Controller_Ajax_Fm extends Engine_Ajax {
         $total = 0;
 		
         if ( (isset($fm["admin"])) and ($fm["admin"]) ) {
-    		$sql = "SELECT d.id, d.uid, d.name AS `name`, r.right AS `right`, d.close AS `close`
-    		FROM fm_dirs AS d
-    		LEFT JOIN fm_dirs_chmod AS r ON (r.did = d.id)
-    		WHERE d.pid = :pid";
+    		$dirs = $this->_mfile->getAdminDirs($curdir);
         } else {
-    		$sql = "SELECT d.id, d.uid, d.name AS `name`, r.right AS `right`, d.close AS `close`
-    		FROM fm_dirs AS d
-    		LEFT JOIN fm_dirs_chmod AS r ON (r.did = d.id)
-    		WHERE d.pid = :pid AND d.close = 0";
+    		$dirs = $this->_mfile->getDirs($curdir);
         }
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":pid" => $curdir);
-		$res->execute($param);
-		$dirs = $res->fetchAll(PDO::FETCH_ASSOC);
 		
 		$k = 0; $res_dirs = array();
 		for($i=0; $i<count($dirs); $i++) {
@@ -222,35 +140,10 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 		}
 
 		if ( (isset($fm["admin"])) and ($fm["admin"]) ) {
-			$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
-			FROM fm_fs AS f
-			LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
-			LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-			LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
-			LEFT OUTER JOIN fm_share AS s ON (s.md5 = f.md5)
-			WHERE f.pdirid = :pid AND r.right != 'NULL'
-			AND f.id IN 
-			(
-				SELECT MAX(id) FROM fm_fs GROUP BY filename ORDER BY id DESC
-			)
-			GROUP BY f.filename
-			ORDER BY f.filename, f.id DESC";
+			$files = $this->_mfile->getAdminFiles($curdir);
 		} else {
-			$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
-			FROM fm_fs AS f
-			LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
-			LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-			LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
-			LEFT OUTER JOIN fm_share AS s ON (s.md5 = f.md5)
-			WHERE f.pdirid = :pid AND f.close = 0 AND r.right != 'NULL'
-			GROUP BY f.filename
-			ORDER BY f.filename";
+			$files = $this->_mfile->getFiles($curdir);
 		}
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":pid" => $curdir);
-		$res->execute($param);
-		$files = $res->fetchAll(PDO::FETCH_ASSOC);
         
         if ($curdir == null) {
         	$shPath = "/";
@@ -290,6 +183,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 			}
 			
 			if ($flag) {
+				$res_files[$k]["id"] = $files[$i]["id"];
 				$res_files[$k]["close"] = $files[$i]["close"];
 				$res_files[$k]["name"] = $files[$i]["name"];
 				if (mb_strlen($res_files[$k]["name"]) > 20) {
@@ -299,7 +193,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 				}
 				
 				$ext = mb_substr($res_files[$k]["name"], mb_strrpos($res_files[$k]["name"], ".") + 1);
-				$res_files[$k]["ico"] = $this->mfile->setIcon($ext);
+				$res_files[$k]["ico"] = $this->_mfile->setIcon($ext);
 				
 				$res_files[$k]["share"] = $files[$i]["share"];
 				
@@ -321,53 +215,21 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	} else {
     		$clip = "";
     	}
-		
-		$drop = $this->view->render("fm_attaches", array());
         
         if (($total / 1024) > 1) { $total = round($total / 1024, 2) . "&nbsp;Кб"; } else { $total = round($total, 2) . "&nbsp;Б"; };
     	if (($total / 1024) > 1) { $total = round($total / 1024, 2) . "&nbsp;Мб"; };
         
-        echo $this->view->render("fm_content", array("admin" => $fm["admin"], "clip" => $clip, "shPath" => $shPath, "dirs" => $res_dirs, "_thumb" => $this->registry['path']['upload'] . "_thumb/", "files" => $res_files, "totalsize" => $total, "javascript" => $drop));
+        echo $this->view->render("fm_content", array("admin" => $fm["admin"], "clip" => $clip, "shPath" => $shPath, "dirs" => $res_dirs, "_thumb" => $this->registry['path']['upload'] . "_thumb/", "files" => $res_files, "totalsize" => $total));
 		
     }
     
 	function delfile($params) {
-	    $fm = & $_SESSION["fm"];
-        $curdir = $fm["dir"];
-        
 		$fname = $params["fname"];
-
-    	$sql = "UPDATE fm_fs SET `close` = '1' WHERE `filename` = :filename AND pdirid = :pdirid";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":filename" => $fname, ":pdirid" => $curdir);
-		$res->execute($param);
+		$this->_mfile->delfile($fname);
 	}
 	
 	function getTotalSize() {
-		$fm = & $_SESSION["fm"];
-        $curdir = $fm["dir"];
-        
-        $totalSize = 0;
-	
-		$sql = "SELECT f.filename, f.size, h.timestamp
-		FROM fm_fs AS f
-		LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-		WHERE f.pdirid = :pid AND f.close = 0";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":pid" => $curdir);
-		$res->execute($param);
-		$files = $res->fetchAll(PDO::FETCH_ASSOC);
-
-		for($i=0; $i<count($files); $i++) {
-			$totalSize += $files[$i]["size"];
-		}
-		
-		if (($totalSize / 1024) > 1) { $totalSize = round($totalSize / 1024, 2) . "&nbsp;Кб"; } else { $totalSize = round($totalSize, 2) . "&nbsp;Б"; };
-		if (($totalSize / 1024) > 1) { $totalSize = round($totalSize / 1024, 2) . "&nbsp;Мб"; };
-		
-		echo $totalSize;
+		echo $this->_mfile->getTotalSize();
 	}
     
     function chdir($params) {
@@ -376,24 +238,14 @@ class Controller_Ajax_Fm extends Engine_Ajax {
         $fm = & $_SESSION["fm"];
                 
         if ($dir == "..") {
-        	$sql = "SELECT `pid` FROM fm_dirs WHERE `id` = :id LIMIT 1";
-        
-        	$res = $this->registry['db']->prepare($sql);
-			$param = array(":id" => $fm["dir"]);
-			$res->execute($param);
-			$data = $res->fetchAll(PDO::FETCH_ASSOC);
+        	$data = $this->_mfile->getPidFromDir($fm["dir"]);
 
 			if (count($data) == 0) {
 				unset($fm["dir"]);
 				$fm["dirname"] = "/";
 			} else {
-				$sql = "SELECT `name` FROM fm_dirs WHERE `id` = :id LIMIT 1";
-        
-	        	$res = $this->registry['db']->prepare($sql);
-				$param = array(":id" => $data[0]["pid"]);
-				$res->execute($param);
-				$dirname = $res->fetchAll(PDO::FETCH_ASSOC);
-			
+				$dirname = $this->_mfile->getNameFromDir($data[0]["pid"]);
+
 				if (count($dirname) == 0) {
 					$fm["dir"] = 0;
 					$fm["dirname"] = "/";
@@ -403,12 +255,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 				}
 			}
         } else {
-        	$sql = "SELECT `id` FROM fm_dirs WHERE `name` = :name AND pid = :pid LIMIT 1";
-        
-        	$res = $this->registry['db']->prepare($sql);
-			$param = array(":name" => $dir, "pid" => $fm["dir"]);
-			$res->execute($param);
-			$data = $res->fetchAll(PDO::FETCH_ASSOC);
+        	$data = $this->_mfile->getDirIdFromNameAndPid($dir, $fm["dir"]);
 			
             $fm["dir"] = $data[0]["id"];
             $fm["dirname"] = $dir;
@@ -423,29 +270,10 @@ class Controller_Ajax_Fm extends Engine_Ajax {
         $fm = & $_SESSION["fm"];
         $curdir = $fm["dir"];
         
-        $sql = "SELECT count(id) AS count FROM fm_dirs WHERE `name` = :name AND `pid` = :pid LIMIT 1";
+        $flag = $this->_mfile->createDir($curdir, $dirName);
         
-        $res = $this->registry['db']->prepare($sql);
-        $param = array(":pid" => $curdir, ":name" => $dirName);
-        $res->execute($param);
-        $data = $res->fetchAll(PDO::FETCH_ASSOC);
-        
-        if ($data[0]["count"] == 0) {        
-	        $sql = "INSERT INTO fm_dirs (uid, `pid`, `name`) VALUES (:uid, :pid, :name)";
-	        
-	        $res = $this->registry['db']->prepare($sql);
-			$param = array(":uid" => $this->registry["ui"]["id"], ":pid" => $curdir, ":name" => $dirName);
-			$res->execute($param);
-			
-			$did = $this->registry['db']->lastInsertId();
-			
-			$sql = "INSERT INTO fm_dirs_chmod (did, `right`) VALUES (:did, :json)";
-	        
-	        $res = $this->registry['db']->prepare($sql);
-			$param = array(":did" => $did, ":json" => '{"frall":"true"}');
-			$res->execute($param);
-			
-			$this->files();
+        if ($flag) {
+        	$this->files();
         } else {
         	echo "error";
         }
@@ -457,11 +285,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
         $fm = & $_SESSION["fm"];
         $curdir = $fm["dir"];
         
-        $sql = "UPDATE fm_dirs SET close = 1 WHERE `pid` = :pid AND `name` = :name AND close = 0 LIMIT 1";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":pid" => $curdir, ":name" => $dirName);
-		$res->execute($param);
+        $this->_mfile->rmDir($curdir, $dirName);
 
         $this->files();
     }
@@ -487,11 +311,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
         
     	if ( (isset($buffer["dir"])) and ($buffer["files"]) ) {
 	        foreach($buffer["files"] as $part) {
-		        $sql = "UPDATE fm_fs SET pdirid = :dir WHERE `filename` = :filename AND pdirid = :curdir AND close = 0";
-		        
-		        $res = $this->registry['db']->prepare($sql);
-				$param = array(":dir" => $curdir, ":filename" => $part, ":curdir" => $buffer["dir"]);
-				$res->execute($param);
+	        	$this->_mfile->moveFiles($curdir, $part, $buffer["dir"]);
 	        }
     	}
         
@@ -505,12 +325,8 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	
     	$fm = & $_SESSION["fm"];
         $curdir = $fm["dir"];
-
-		$sql = "UPDATE fm_fs SET `close` = 1 WHERE `filename` = :filename AND pdirid = :pdirid";
         
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":filename" => $file, ":pdirid" => $curdir);
-		$res->execute($param);
+        $this->_mfile->issetFile($file, $curdir);
     }
 
     function getFileHistory($params) {
@@ -519,21 +335,11 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	
     	$md5 = $params["md5"];
     	
-        $sql = "SELECT h.timestamp AS `timestamp`, h.uid, fs1.md5
-        FROM fm_fs AS fs
-        LEFT JOIN fm_fs AS fs1 ON (fs.filename = fs1.filename)
-        LEFT JOIN fm_fs_history AS h ON (h.fid = fs1.id)
-        WHERE fs.md5 = :md5 AND fs.pdirid = :pdirid AND fs1.pdirid = :pdirid
-        ORDER BY h.timestamp DESC";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":md5" => $md5, ":pdirid" => $curdir);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+    	$data = $this->_mfile->getFileHistory($md5, $curdir);
 		
 		foreach($data as $part) {
 			if ($part["uid"] != null) {
-				$uid = $this->muser->getUserInfo($part["uid"]);
+				$uid = $this->_muser->getUserInfo($part["uid"]);
 				echo $this->view->render("fm_fhistory", array("md5" => $part["md5"], "date" => $part["timestamp"], "uid" => $uid));
 			}
 		}
@@ -545,21 +351,11 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	
     	$md5 = $params["md5"];
     	
-    	$sql = "SELECT t.uid, t.text AS `text`, t.timestamp AS `timestamp`
-    	FROM fm_fs AS fs
-        LEFT JOIN fm_fs AS fs1 ON (fs.filename = fs1.filename)
-        LEFT JOIN fm_text AS t ON (t.fid = fs1.id)
-        WHERE fs.md5 = :md5 AND fs.pdirid = :pdirid AND fs1.pdirid = :pdirid
-    	ORDER BY timestamp DESC";
-        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":md5" => $md5, ":pdirid" => $curdir);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+    	$data = $this->_mfile->getFileText($md5, $curdir);
 		
 		foreach($data as $part) {
 			if ($part["uid"] != null) {
-				$uid = $this->muser->getUserInfo($part["uid"]);
+				$uid = $this->_muser->getUserInfo($part["uid"]);
 				echo $this->view->render("fm_ftext", array("text" => $part["text"], "date" => $part["timestamp"], "uid" => $uid));
 			}
 		}
@@ -570,13 +366,9 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	$md5 = $params["md5"];
     	
     	$this->getFileParamsFromMd5($md5);
-    	$fid = $this->file["id"]; 
+    	$fid = $this->_file["id"]; 
     	
-    	$sql = "INSERT INTO fm_text SET fid = :fid, uid = :uid, `text` = :text";
-	        
-        $res = $this->registry['db']->prepare($sql);
-		$param = array(":fid" => $fid, ":uid" => $this->registry["ui"]["id"], ":text" => nl2br($text));
-		$res->execute($param);
+    	$this->_mfile->addFileText($fid, $text);
     	
     	echo $this->view->render("fm_ftext", array("text" => nl2br($text), "date" => date("Y-m-d H:i:s")));
     }
@@ -584,33 +376,16 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     function getFileChmod($params) {
     	$md5 = $params["md5"];
     	
-    	$sql = "SELECT ug.id AS pid, ug.name AS pname, usg.id AS sid, usg.name AS sname
-        FROM users_group AS ug
-        LEFT JOIN users_subgroup AS usg ON (usg.pid = ug.id)
-        ORDER BY ug.id";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array();
-		$res->execute($param);
-		$groups = $res->fetchAll(PDO::FETCH_ASSOC);
-
-		$users = array();
-        
-        $sql = "SELECT u.id, ug.id AS gid, ug.name AS gname
-        FROM users AS u
-        LEFT JOIN users_priv AS up ON (up.id = u.id)
-        LEFT JOIN users_subgroup AS ug ON (ug.id = up.group)
-        GROUP BY up.id";
-        
-        $res = $this->registry['db']->prepare($sql);
-        $res->execute();
-		$users = $res->fetchAll(PDO::FETCH_ASSOC);
+    	$this->_mfile->getFileChmod();
+    	
+    	$groups = $this->_mfile->getGroups();
+    	$users = $this->_mfile->getUsers();
 
 		$sortlist = array();
 		foreach($groups as $group) {
 			foreach($users as $user) {
 				if ( ($user["gname"] == $group["sname"]) and ($group["sname"] != null) ) {
-					$udata = $this->view->render("fm_data", array("data" => $this->muser->getUserInfo($user["id"])));
+					$udata = $this->view->render("fm_data", array("data" => $this->_muser->getUserInfo($user["id"])));
 					$sortlist[$group["pname"]][$group["sid"]][] = $udata;
 				}
 			}
@@ -618,7 +393,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 
 		$this->print_array($sortlist);
 
-		echo $this->view->render("fm_tree", array("group" => $groups, "list" => $this->tree, "md5" => $md5));
+		echo $this->view->render("fm_tree", array("group" => $groups, "list" => $this->_tree, "md5" => $md5));
     }
     
 	private function print_array($arr) {
@@ -632,54 +407,26 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 					$val = "пусто";
 				}
 
-				$this->tree .= "<ul><li><div style='margin: 0 0 0 10px'>" . $val . "</div></li></ul>";
+				$this->_tree .= "<ul><li><div style='margin: 0 0 0 10px'>" . $val . "</div></li></ul>";
 			}
 			if (is_array($val)) {
 				if ($key != "0") {
 					if(is_numeric($key)) {
-						$gid = $this->getSubgroupName($key);
-						$this->tree .= "<ul><li><span class='folder'><label><input type='checkbox' id='fg" . $key . "' name='fgruser[]' class='fgruser' value='" . $key . "' />&nbsp;" . $gid . "</label></span>";
+						$gid = $this->_muser->getSubgroupName($key);
+						$this->_tree .= "<ul><li><span class='folder'><label><input type='checkbox' id='fg" . $key . "' name='fgruser[]' class='fgruser' value='" . $key . "' />&nbsp;" . $gid . "</label></span>";
 					} else {
-						$this->tree .= "<ul><li><span class='folder'>&nbsp;" . $key . "</span>";
+						$this->_tree .= "<ul><li><span class='folder'>&nbsp;" . $key . "</span>";
 					}
 				}
 
 				$this->print_array($val);
 
 				if ($key != "0") {
-					$this->tree .= "</li></ul>";
+					$this->_tree .= "</li></ul>";
 				}
 			}
 		}
 	}
-	
-    function getGroupId($gname) {
-		$sql = "SELECT id 
-        FROM users_group
-        WHERE `name` = :gname
-        LIMIT 1";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":gname" => $gname);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
-        
-        return $data[0]["id"];
-    }
-    
-	public function getSubgroupName($sid) {
-		$sql = "SELECT `name` 
-        FROM users_subgroup
-        WHERE id = :sid
-        LIMIT 1";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":sid" => $sid);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
-        
-        return $data[0]["name"];
-    }
     
     function getUsersChmod($params) {
     	$fm = & $_SESSION["fm"];
@@ -687,19 +434,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	
     	$md5 = $params["md5"];
     	
-    	$data = array();
-    	
-    	$sql = "SELECT r.right AS `right` 
-        FROM fm_fs AS fs
-        LEFT JOIN fm_fs AS fs1 ON (fs1.filename =fs.filename)
-        LEFT JOIN fm_fs_chmod AS r ON (r.fid = fs1.id)
-        WHERE fs.md5 = :md5 AND fs.pdirid = :pdirid AND fs1.pdirid = :pdirid
-        LIMIT 1";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":md5" => $md5, ":pdirid" => $curdir);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+    	$data = $this->_mfile->getUsersChmod($md5, $curdir);
 
         echo $data[0]["right"];
     }
@@ -707,17 +442,7 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     function getUsersDirChmod($params) {
     	$did = $params["did"];
     	
-    	$data = array();
-    	
-    	$sql = "SELECT `right` 
-        FROM fm_dirs_chmod
-        WHERE did = :did
-        LIMIT 1";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":did" => $did);
-		$res->execute($param);
-		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		$data = $this->_mfile->getUsersDirChmod($did);
 
         echo $data[0]["right"];
     }
@@ -727,55 +452,30 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     	$md5 = $params["md5"];
     	
     	$this->getFileParamsFromMd5($md5);
-
-    	$sql = "UPDATE fm_fs_chmod SET `right` = :json WHERE fid = :fid LIMIT 1";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":fid" => $this->file["parent_id"], ":json" => $json);
-		$res->execute($param);
+    	
+    	$this->_mfile->addFileRight($this->_file["min_id"], $json);
     }
     
     function addDirRight($params) {
     	$json = $params["json"];
     	$did = $params["did"];
-
-    	$sql = "UPDATE fm_dirs_chmod SET `right` = :json WHERE did = :did LIMIT 1";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":did" => $did, ":json" => $json);
-		$res->execute($param);
+    	
+    	$this->_mfile->addDirRight($did, $json);
     }
     
     function shDirRight($params) {
     	$did = $params["did"];
     	
-    	$sql = "SELECT ug.id AS pid, ug.name AS pname, usg.id AS sid, usg.name AS sname
-        FROM users_group AS ug
-        LEFT JOIN users_subgroup AS usg ON (usg.pid = ug.id)
-        ORDER BY ug.id";
-		
-		$res = $this->registry['db']->prepare($sql);
-		$param = array();
-		$res->execute($param);
-		$groups = $res->fetchAll(PDO::FETCH_ASSOC);
-
-		$users = array();
-        
-        $sql = "SELECT u.id, ug.id AS gid, ug.name AS gname
-        FROM users AS u
-        LEFT JOIN users_priv AS up ON (up.id = u.id)
-        LEFT JOIN users_subgroup AS ug ON (ug.id = up.group)
-        GROUP BY up.id";
-        
-        $res = $this->registry['db']->prepare($sql);
-        $res->execute();
-		$users = $res->fetchAll(PDO::FETCH_ASSOC);
+    	$this->_mfile->getFileChmod();
+    	
+    	$groups = $this->_mfile->getGroups();
+    	$users = $this->_mfile->getUsers();
 
 		$sortlist = array();
 		foreach($groups as $group) {
 			foreach($users as $user) {
 				if ( ($user["gname"] == $group["sname"]) and ($group["sname"] != null) ) {
-					$udata = $this->view->render("fm_data", array("data" => $this->muser->getUserInfo($user["id"])));
+					$udata = $this->view->render("fm_data", array("data" => $this->_muser->getUserInfo($user["id"])));
 					$sortlist[$group["pname"]][$group["sid"]][] = $udata;
 				}
 			}
@@ -783,22 +483,14 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 
 		$this->print_array($sortlist);
 
-		echo $this->view->render("fm_dtree", array("group" => $groups, "list" => $this->tree, "did" => $did));
+		echo $this->view->render("fm_dtree", array("group" => $groups, "list" => $this->_tree, "did" => $did));
     }
     
     function getCurDirName() {
     	$fm = & $_SESSION["fm"];
     	$curdir = $fm["dir"];
 
-    	$sql = "SELECT `name`
-    	FROM fm_dirs
-    	WHERE id = :pdirid AND close = 0
-    	LIMIT 1";
-    	
-    	$res = $this->registry['db']->prepare($sql);
-    	$param = array(":pdirid" => $curdir);
-    	$res->execute($param);
-    	$data = $res->fetchAll(PDO::FETCH_ASSOC);
+    	$data = $this->_mfile->getCurDirName($curdir);
     	
     	if (isset($data[0]["name"])) {
     		echo $data[0]["name"] . "/";
@@ -806,42 +498,40 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     		echo null;
     	}
     }
-    
-    private function _share($md5) {
-    	$sql = "SELECT COUNT(id) AS count
-    	    	FROM fm_share
-    	    	WHERE md5 = :md5
-    	    	LIMIT 1";
-    	 
-    	$res = $this->registry['db']->prepare($sql);
-    	$param = array(":md5" => $md5);
-    	$res->execute($param);
-    	$row = $res->fetchAll(PDO::FETCH_ASSOC);
 
-    	if ($row[0]["count"]) {
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
-    
 	function share($params) {
     	$md5 = $params["md5"];
     	
-    	if ($this->_share($md5)) {
-    		$sql = "DELETE FROM `fm_share` WHERE `md5` = :md5 LIMIT 1";
+    	if ($this->_mfile->share($md5)) {
+    		$this->_mfile->delShare($md5);
     		
-    		$res = $this->registry['db']->prepare($sql);
-    		$param = array(":md5" => $md5);
-    		$res->execute($param);
+    		$this->getFileParamsFromMd5($md5);
+    		$row["fid"] = $this->_file["max_id"];
+    		$row["action"] = "unshare";
     	} else {
-    		$file = $this->getFileParamsFromMd5($md5);
+    		$this->getFileParamsFromMd5($md5);
     		
-    		$sql = "INSERT INTO fm_share (`md5`, `desc`) VALUES (:md5, :desc)";
+    		if ($this->_file["pdirid"] == 0) {
+    			$fname = $this->_file["filename"];
+    		} else {
+    			$fname = "(" . $this->_file["pdirid"] . ")" . $this->_file["filename"];
+    		}
+
+    		$this->_mfile->addShare($md5, $fname);
     		
-    		$res = $this->registry['db']->prepare($sql);
-    		$param = array(":md5" => $md5, ":desc" => $this->file["parent_id"] . $this->file["filename"]);
-    		$res->execute($param);
+    		$row["fid"] = $this->_file["max_id"];
+    		$row["desc"] = $fname;
+    		$row["action"] = "share";
+    	}
+    	
+    	echo json_encode($row);
+    }
+    
+    function getShare($params) {
+    	$md5 = $params["md5"];
+    	
+    	if ($this->_mfile->share($md5)) {
+    		echo $this->_mfile->getDesc();
     	}
     }
 }

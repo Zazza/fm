@@ -7,7 +7,7 @@
 {% endif %}
 
 <div style="margin-bottom: 50px">
-<h3>Правка данных пользователя</h3>
+<h2>Правка данных пользователя</h2>
 
 <p><b>Логин</b></p><p><input name='login' type='text' size='60' value="{{ post.login }}" /></p>
 

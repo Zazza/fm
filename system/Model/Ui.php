@@ -54,19 +54,5 @@ class Model_Ui extends Engine_Model {
 			$this->stopSess($loginSession["id"]);
 		}
 	}
-	
-	public function editUser($uid, $login) {
-		$sql = "UPDATE users SET `login` = :login WHERE id = :id LIMIT 1";
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":id" => $uid, ":login" => $login);
-		$res->execute($param);
-	}
-
-	public function editUserPass($uid, $pass) {
-		$sql = "UPDATE users SET pass = :pass WHERE id = :id LIMIT 1";
-		$res = $this->registry['db']->prepare($sql);
-		$param = array(":id" => $uid, ":pass" => md5(md5($pass)));
-		$res->execute($param);
-	}
 }
 ?>

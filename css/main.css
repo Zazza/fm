@@ -8,17 +8,12 @@ html, body {
     font-weight: normal;
     font-variant: normal;
     text-align: center;
-    background: #F7F7F7;
+    background: #FFF;
     height: 100%;
     margin: 0;
     padding: 0;
     min-width: 1000px;
     color: #000;
-}
-
-#topotms {
-	height: 28px;
-	background: #708eaa;
 }
 
 .topbar {
@@ -100,7 +95,7 @@ button, input, select, textarea {
     vertical-align: baseline;
 }
 
-#mainContent {
+#container {
 	clear: both;
 	overflow: hidden;
 	text-align: left;
@@ -109,7 +104,7 @@ button, input, select, textarea {
 	padding-top: 30px;
 }
 
-#rightMainContent {
+#content {
     margin: 20px;
 }
 
@@ -118,40 +113,6 @@ hr {
 	border: 0px none;
 	background-color: #AAA;
 	margin: 10px 0;	
-}
-
-pre {
-     white-space: pre-wrap;       /* css-3 */
-     white-space: -moz-pre-wrap;  /* Mozilla, с 1999 */
-     white-space: -pre-wrap;      /* Opera 4-6 */
-     white-space: -o-pre-wrap;    /* Opera 7 */
-     word-wrap: break-word;       /* Internet Explorer 5.5+ поддерживается в IE, Safari, и Firefox 3.1.*/
-}
-
-.avatar {
-    width: 48px;
-    height: 48px;
-    vertical-align: top;
-    padding: 2px;
-    border: 1px solid #DDDDDD;
-    background-color: #FFF;
-}
-
-.aleft {
-    color: #FFF;
-    text-decoration: none;
-    font-size: 11px;
-}
-.aleft:hover {
-    text-decoration: underline;
-}
-
-input[type="text"], input[type="password"] {
-    background-color: #F7F7F7;
-    border-color: #AAAAAA #DDDDDD #DDDDDD;
-    border-style: solid;
-    border-width: 1px;
-    height: 22px;
 }
 
 p {
@@ -174,110 +135,17 @@ a:hover { text-decoration: underline; }
 	text-shadow: none;
 }
 
-.none { text-decoration: none; }
-.none:hover { text-decoration: underline; }
-
-#menu {
-	padding-top: 5px;
-}
-
-.sellmenu {
-    background-color: #F0F0E7;
-    padding: 1px 2px 2px;
-}
-.sellmenu > a { color: #000; }
-.sellmenu > a:hover { color: #000; }
-
-.sel {
-    -moz-border-radius: 2px 2px 2px 2px;
-    border-radius: 2px 2px 2px 2px;
-    -webkit-border-radius: 2px 2px 2px 2px;
-    background-color: #FFF;
-    border: 1px solid #D5D5D5;
-    color: #000000;
-    display: block;
-    font-size: 11px;
-    line-height: 15px;
-    padding: 3px 7px;
-    position: relative;
-    text-align: left;
-    overflow: hidden;
-    text-decoration: none;
-}
-
-.obj {
-    font-size: 11px;
-    overflow: hidden;
-    text-align: left;
-    padding: 10px 20px 20px 20px;
-}
-
-.title {
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 18px;
-    line-height: 40px;
-    font-weight: normal;
-    color: #000;
-}
-a.title { text-decoration: none; }
-a.title:hover { text-decoration: underline; }
-
-.info {
-    -moz-border-radius: 3px 3px 3px 3px;
-    border-radius: 3px 3px 3px 3px;
-    -webkit-border-radius: 3px 3px 3px 3px;
-    border: 1px solid #AAA;
-    background-color: #e4eeff;
-    font-size: 11px;
-    margin: 0 10px 0 0;
-    padding: 5px 10px;
-}
-
-.pager_li {
+.menu {
 	float: left;
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 18px;
-    margin: 20px 3px;
+	padding: 5px 0;
 }
-#pager_ul, #pagerAjax_ul {
-	clear: both;
-	line-height: 100%;
-	list-style-image: none;
-	list-style-position: outside;
-	list-style-type: none;
-	padding: 0;
-    height: 60px;
+.menu:hover {
+	float: left;
+	background-color: #708EAA;
 }
-a.pager { color: #0066CC; text-decoration: none; }
-.pager_utext {
-	padding: 5px;
-	color: #000;
-}
-.pager_arr {
-	padding: 3px 0;
-    margin: 0 10px;
-}
-.pager_text {
-    background-color: #EBF2FF;
-    border: 1px solid #0066CC;
-    padding: 4px 6px;
-}
-
-.th_help {
-    font-family: Arial;
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-.help {
-    padding: 10px;
-    margin-bottom: 40px;
-}
-.help img {
-	border: 1px solid black;
-	padding: 3px;
-	margin: 10px 0;
-	max-width: 100%;
+.menu:hover > a {
+	color: white;
+	text-shadow: none;
 }
 
 .downsh {
@@ -327,6 +195,44 @@ a.pager { color: #0066CC; text-decoration: none; }
 }
 
 
+#btnCopy {
+	background: url('../img/clipboard-sign.png') no-repeat scroll 10px 2px transparent;
+	padding: 3px 0;
+	width: 40px;
+}
+#btnPast {
+	background: url('../img/clipboard-sign-out.png') no-repeat scroll 10px 2px transparent;
+	padding: 3px 0;
+	width: 40px;
+}
+
+#servTop {
+	height: 13px;
+	border: 1px solid #DEDEDE;
+	font-size: 11px;
+	font-weight: bold;
+	margin: 0 0 10px 0;
+	padding: 4px;
+	text-align: left;
+}
+#servSel {
+	float: left;
+	position: relative;
+	bottom: 3px;
+}
+#servClear {
+	float: right;
+	position: relative;
+	bottom: 3px;
+	font-size: 10px;
+	font-weight: bold;
+}
+
+#wndShare {
+	border: 1px solid #AAA;
+	margin-top: 10px;
+	padding: 5px;
+}
 /* FM */
 #fm {
     overflow: auto;

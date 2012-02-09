@@ -20,7 +20,7 @@ class Controller_Ajax_Save extends Engine_Ajax {
     
     function handleUpload($uploadDirectory, $_thumbPath, $replaceOldFile = FALSE) {		 
         if (!is_writable($uploadDirectory)){
-            return array('error' => "Ошибка сервера. Запись в директорию невозможен! " . $this->abspDir);
+            return array('error' => "Ошибка сервера. Запись в директорию невозможен!");
         }
         
         if (!$this->file){

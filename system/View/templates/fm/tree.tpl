@@ -2,7 +2,7 @@
 
 <div id="fchmod">
 
-<p style="font-size: 11px"><label><input type="checkbox" name="frall" value="1" id="frall" />Выбрать всех</label></p>
+<p style="font-size: 11px"><label><input type="checkbox" name="frall" value="1" id="frall" />&nbsp;Выбрать всех</label></p>
 
 <ul id="fstructure" class="filetree">{{ list }}</ul>
 

@@ -1,3 +1,31 @@
+$(document).ready(function(){
+	$("#utree > #Pstructure").treeview({
+		persist: "location",
+		collapsed: true
+    });
+
+	$('#Prall').click(function(){
+		if ($("#Prall").attr("checked")) {
+			$('#Pstructure input:checkbox:enabled').each(function(){this.disabled = !this.disabled});
+			$('#Pstructure input:checkbox').removeAttr("checked");
+		} else {
+			$('#Pstructure input:checkbox:disabled').each(function(){this.disabled = !this.disabled});
+			$('#Pstructure input:checkbox').removeAttr("checked");
+		}
+		
+		$('#Prall').removeAttr("disabled");
+	});
+
+	$('.Pgruser').click(function(){
+		$('input.Pg' + $(this).val() + ':checkbox').each(function(){this.disabled = !this.disabled});
+		$('#Prall').removeAttr("checked");
+	});
+
+	$('.Pcusers').click(function(){
+		$('#Prall').removeAttr("checked");
+	});
+});
+
 if($("ul.dropdown").length) {
 	$("ul.dropdown li").dropdown();
 };
@@ -101,7 +129,7 @@ function addElement(id, fileName) {
     
     $("#fm_uploadDir").prepend(rowInsert);
     
-    pre(); setDrag();
+    pre();
 };
 
 function del(fname, id) {
@@ -244,6 +272,22 @@ function getMD5Name(fname) {
     return md5;
 }
 
+function getShare(md5) {
+	var data = null;
+	
+	$.ajax({
+    	type: "POST",
+    	async: false,
+    	url: url + 'ajax/fm/',
+    	data: "action=getShare&md5=" + md5,
+    	success: function(res) {
+    		data = res;
+    	}
+    });
+
+    return data;
+}
+
 function createDir() {
     var _dirName = encodeURIComponent($("#fm_dirname").val());
     if (_dirName.length == 0) {
@@ -260,7 +304,7 @@ function createDir() {
         	data: "action=createDir&dirName=" + _dirName,
         	success: function(res) {
         		if (res == "error") {
-        			$('<div title="Ошибка">Папка с таким имененм уже существует!</div>').dialog({
+        			$('<div title="Ошибка">Папка с таким именем существует!</div>').dialog({
         	    		modal: true,
         	    	    buttons: {
         	                "Закрыть": function() { $(this).dialog("close"); }
@@ -302,6 +346,7 @@ function pastFiles() {
     	data: "action=moveFiles",
     	success: function(res) {
             $("#fm_filesystem").html(res);
+            $("#clip").html("");
     	}
     });
 }
@@ -322,9 +367,80 @@ function empty() {
 }
 
 function share(md5) {
+	var fname = null;
+	var desc = null;
+	
 	$.ajax({
     	type: "POST",
     	url: url + 'ajax/fm/',
-    	data: "action=share&md5=" + md5
+    	data: "action=share&md5=" + md5,
+    	dataType: 'json',
+    	success: function(res) {
+    		$.each(res, function(key, val) {
+    			if (key == "fid") {
+    				fid = val;
+    			} else if (key == "desc") {
+    				desc = val;
+    			} else if (key == "action") {
+    				if (val == "share") {
+    					$("#shareName").show();
+            			$(".fname").text(desc);
+
+    					$("#fs_" + fid).show();
+    				} else if (val == "unshare") {
+    					$("#share").removeAttr("checked");
+    	    			$("#shareName").hide();
+    	    			
+    					$("#fs_" + fid).hide();
+    				}
+    			}
+    		});
+    	}
     });
+}
+
+function delUserConfirm(uid) {
+	$('<div title="Удаление пользователя">Удалить?</div>').dialog({
+		modal: true,
+	    buttons: {
+			"Нет": function() { $(this).dialog("close"); },
+			"Да": function() { delUser(uid); $(this).dialog("close"); }
+		},
+		width: 240
+	});
+}
+
+function delUser(uid) {
+    var data = "action=delUser&uid=" + uid;
+	$.ajax({
+		type: "POST",
+		url: url + "ajax/users/",
+		data: data,
+		success: function(res) {
+            document.location.href = document.location.href;
+		}
+	});
+}
+
+function delGroupConfirm(gid) {
+	$('<div title="Удаление группы">Удалить?</div>').dialog({
+		modal: true,
+	    buttons: {
+			"Нет": function() { $(this).dialog("close"); },
+			"Да": function() { delGroup(gid); $(this).dialog("close"); }
+		},
+		width: 240
+	});
+}
+
+function delGroup(gid) {
+    var data = "action=delGroup&gid=" + gid;
+	$.ajax({
+		type: "POST",
+		url: url + "ajax/users/",
+		data: data,
+		success: function(res) {
+            document.location.href = document.location.href;
+		}
+	});
 }

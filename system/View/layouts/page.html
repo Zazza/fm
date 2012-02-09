@@ -2,22 +2,18 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="icon" type="image/gif" href="{{ registry.uri }}favicon.png" />
 <meta name="description" content="FM" />
 <meta name="keywords" content="FM" />
 <title>{{ title }}</title>
 <link href="{{ registry.uri }}css/Aristo.css" rel="stylesheet" type="text/css" />
 <link href="{{ registry.uri }}css/main.css" rel="stylesheet" media="all" />
 <link href="{{ registry.uri }}css/jquery.treeview.css" rel="stylesheet" type="text/css" />
-<link href="{{ registry.uri }}css/dropdown.css" rel="stylesheet" type="text/css" />
-<link href="{{ registry.uri }}css/default.css" rel="stylesheet" type="text/css" />
 <script type="text/javascript" src="{{ registry.uri }}js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/jquery.treeview.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/scripts.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/fm.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/jquery.watermark.min.js"></script>
-<script type="text/javascript" src="{{ registry.uri }}js/users.js"></script>
 
 <script type="text/javascript">
     fmInit('{{ registry.uri }}');
@@ -29,27 +25,31 @@
 <!-- TOP -->
 <div class="topbar">
 <div class="downsh">
-	<div style="float: left" id="menu">
-		<a href="{{ registry.uri }}">Файловый менеджер</a>
+	<div style="float: left">
+		<div class="menu">
+			<a href="{{ registry.uri }}">Файловый менеджер</a>
+		</div>
 		{% if registry.ui.admin %}
-		<a href="{{ registry.uri }}users/">Пользователи</a>
+		<div class="menu">
+			<a href="{{ registry.uri }}users/">Пользователи</a>
+		</div>
 		{% endif %}
 	</div>
 
-	<div style="margin-left: 50px; float: left">С выделенными:&nbsp;
-		<input onclick="delmany()" type="button" style="padding: 3px 0; width: 70px" value="Удалить" />	
-		<input onclick="copyFiles()" title="копировать" type="button" style="background: url('{{ registry.uri }}img/clipboard-sign.png') no-repeat scroll 10px 2px transparent; padding: 3px 0; width: 40px" />
-		<input onclick="pastFiles()" title="вставить" type="button" style="background: url('{{ registry.uri }}img/clipboard-sign-out.png') no-repeat scroll 10px 2px transparent; padding: 3px 0; width: 40px" />
+	<div style="margin-left: 30px; float: left">С выделенными:&nbsp;
+		<input onclick="delmany()" type="button" value="Удалить" />	
+		<input onclick="copyFiles()" title="копировать" type="button" id="btnCopy" />
+		<input onclick="pastFiles()" title="вставить" type="button" id="btnPast" />
 		
 		<span id="clip">{{ clip }}</span>
 	</div>
 
-	<div style="float: left; margin-left: 50px">
+	<div style="float: left; margin-left: 30px">
 		<input type="text" name="dirname" id="fm_dirname" placeholder="Имя папки" />
-		<input type="button" onclick="createDir()" value="Создать" style="font-size: 12px" />
+		<input type="button" onclick="createDir()" value="Создать" />
 		
 		{% if registry.ui.admin %}
-		<input onclick="admin()" id="admbtn" type="button" value="Админ." style="font-size: 12px" />
+		<input onclick="admin()" id="admbtn" type="button" value="Админ." />
 		{% endif %}
 	</div>
 	
@@ -59,9 +59,9 @@
 <!-- /TOP -->
 
 <!-- CONTENT -->
-<div id="mainContent">
+<div id="container">
 
-<div id="rightMainContent">
+<div id="content">
     {{ main_content }}
 </div>
 
