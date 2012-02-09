@@ -9,7 +9,7 @@ PDO Database: MySQL, PostgreSQL, SQLite (mysql tested)
 JSON PHP support
 GD PHP support
 
-chmod 777 /upload/ /upload/_thumb/
+chmod 777 /cache/ /upload/ /upload/_thumb/
 
 Database dump: /sql/fm.sql
 
