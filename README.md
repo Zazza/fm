@@ -13,7 +13,7 @@ chmod 777 /cache/ /upload/ /upload/_thumb/
 
 Database dump: /sql/fm.sql
 
-Login and Password: falemanager/filemanager
+Login and Password: filemanager/filemanager
 
 ## License
 See COPYING file
