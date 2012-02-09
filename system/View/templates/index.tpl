@@ -32,7 +32,8 @@
 		
 		<div id="fdmain" class="tabcont" style="text-align: left">
 			<input type="hidden" id="fid" />
-			<div id="dopenfile" class="button" style="background-color: #E5E5D7"></div>
+			<div id="dopenfile" class="button"></div>
+			<div class="button" style="margin-top: 10px"><label><input id="share" type="checkbox" name="share" />&nbsp;Share</label></div>
 			<div id="dfiletext" style="margin-top: 10px"></div>
 			<div style="margin-top: 20px">
 				<textarea id="fText" style="height: 100px; width: 340px"></textarea>

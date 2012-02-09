@@ -320,3 +320,11 @@ function admin() {
 function empty() {
     $(".qq-upload-list").text("");
 }
+
+function share(md5) {
+	$.ajax({
+    	type: "POST",
+    	url: url + 'ajax/fm/',
+    	data: "action=share&md5=" + md5
+    });
+}

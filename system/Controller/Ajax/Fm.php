@@ -222,11 +222,12 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 		}
 
 		if ( (isset($fm["admin"])) and ($fm["admin"]) ) {
-			$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`
+			$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
 			FROM fm_fs AS f
 			LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
 			LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
 			LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
+			LEFT OUTER JOIN fm_share AS s ON (s.md5 = f.md5)
 			WHERE f.pdirid = :pid AND r.right != 'NULL'
 			AND f.id IN 
 			(
@@ -235,11 +236,12 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 			GROUP BY f.filename
 			ORDER BY f.filename, f.id DESC";
 		} else {
-			$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`
+			$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
 			FROM fm_fs AS f
 			LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
 			LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
 			LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
+			LEFT OUTER JOIN fm_share AS s ON (s.md5 = f.md5)
 			WHERE f.pdirid = :pid AND f.close = 0 AND r.right != 'NULL'
 			GROUP BY f.filename
 			ORDER BY f.filename";
@@ -298,6 +300,8 @@ class Controller_Ajax_Fm extends Engine_Ajax {
 				
 				$ext = mb_substr($res_files[$k]["name"], mb_strrpos($res_files[$k]["name"], ".") + 1);
 				$res_files[$k]["ico"] = $this->mfile->setIcon($ext);
+				
+				$res_files[$k]["share"] = $files[$i]["share"];
 				
 				$size = $files[$i]["size"];
 				$total += $size;
@@ -800,6 +804,44 @@ class Controller_Ajax_Fm extends Engine_Ajax {
     		echo $data[0]["name"] . "/";
     	} else {
     		echo null;
+    	}
+    }
+    
+    private function _share($md5) {
+    	$sql = "SELECT COUNT(id) AS count
+    	    	FROM fm_share
+    	    	WHERE md5 = :md5
+    	    	LIMIT 1";
+    	 
+    	$res = $this->registry['db']->prepare($sql);
+    	$param = array(":md5" => $md5);
+    	$res->execute($param);
+    	$row = $res->fetchAll(PDO::FETCH_ASSOC);
+
+    	if ($row[0]["count"]) {
+    		return true;
+    	} else {
+    		return false;
+    	}
+    }
+    
+	function share($params) {
+    	$md5 = $params["md5"];
+    	
+    	if ($this->_share($md5)) {
+    		$sql = "DELETE FROM `fm_share` WHERE `md5` = :md5 LIMIT 1";
+    		
+    		$res = $this->registry['db']->prepare($sql);
+    		$param = array(":md5" => $md5);
+    		$res->execute($param);
+    	} else {
+    		$file = $this->getFileParamsFromMd5($md5);
+    		
+    		$sql = "INSERT INTO fm_share (`md5`, `desc`) VALUES (:md5, :desc)";
+    		
+    		$res = $this->registry['db']->prepare($sql);
+    		$param = array(":md5" => $md5, ":desc" => $this->file["parent_id"] . $this->file["filename"]);
+    		$res->execute($param);
     	}
     }
 }

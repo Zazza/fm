@@ -96,9 +96,6 @@
      public function setInit() {
         mb_internal_encoding("UTF-8");
 
-        $memcached = new Engine_Memcached();
-        $this->registry->set('memcached', $memcached);
-
 		session_start();
      }
 

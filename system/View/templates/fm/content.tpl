@@ -35,6 +35,7 @@
 	
 	<div style="color: #777">{{ part.date }}</div>
 	<div style="color: #777">размер: {{ part.size }}</div>
+	{% if part.share %}<div style="color: green">Share</div>{% endif %}
 </div>
 {% else %}
 <div id="fm_empty" style="text-align: center; width: 100%">пусто</div>
@@ -135,6 +136,8 @@ function pre() {
 		var fname = this.name;
 		
 		var md5 = getMD5Name(fname);
+		
+		$("#share").attr("onchange", "share('" + md5 + "')");
 
 		$("#fid").val(md5);
 
