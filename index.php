@@ -24,8 +24,7 @@ $config["uri"] = $_SERVER["REQUEST_URI"];
 
 $paths = implode(PATH_SEPARATOR, array(
 	$config["path"]["root"] . $config['path']['library'],
-	$config["path"]["root"] . $config['path']['application'],
-	$config["path"]["root"] . "/" . $config['path']['modules']
+	$config["path"]["root"] . $config['path']['application']
 ));
 
 set_include_path($paths);
