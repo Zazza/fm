@@ -91,9 +91,9 @@ class Model_User extends Engine_Model {
             $admin = 0;
         }
         
-        $sql = "INSERT INTO users_priv (id, admin, `group`) VALUES (:id, :admin, :group)";
+        $sql = "INSERT INTO users_priv (uid, admin, `group`) VALUES (:uid, :admin, :group)";
         $res = $this->registry['db']->prepare($sql);
-		$param = array(":id" => $uid, ":admin" => $admin, ":group" => $gname);
+		$param = array(":uid" => $uid, ":admin" => $admin, ":group" => $gname);
 		$res->execute($param);
     }
     
