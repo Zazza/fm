@@ -7,27 +7,42 @@
 {% endif %}
 
 <div style="margin-bottom: 50px">
-<h2>Регистрация нового пользователя</h2>
-<p><b>Логин</b></p>
+<h2>Registration</h2>
+
+<p><b>Login</b></p>
 <p><input name='login' type='text' size='60' value="{{ post.login }}" /></p>
 
-<div style="border: 1px solid #CECECE; padding: 4px 8px; margin: 20px 0; width: 500px">
-<p style="margin: 7px 0">
-    <label><input name='priv' value="admin" type='radio' {% if post.priv == "admin" %} checked {% endif %} />&nbsp;<b>Администратор</b></label>
-    <label><input name='priv' value="null" type='radio' {% if post.priv == FALSE  %} checked {% endif %} />&nbsp;<b>Обычный пользователь</b></label>
-</p>
+<p><b>Password</b></p><p><input name='pass' type='password' /></p>
 
-<p style="margin: 7px 0"><b>Группа</b>&nbsp;
+<div class="well">
+
+<div class="form-inline">
+    <label class='radio'><input name='priv' value="admin" type='radio' {% if post.priv == "admin" %} checked {% endif %} />&nbsp;<b>Admin</b></label>
+    <label class='radio'><input name='priv' value="null" type='radio' {% if post.priv == FALSE  %} checked {% endif %} />&nbsp;<b>User</b></label>
+</div>
+
+<div class="form-inline" style="margin: 10px 0">
+<b>Group</b>&nbsp;
 <select name="gid">
 {% for part in group %}
 <option value="{{ part.sid }}" {% if post.gid == part.sid %} selected="selected" {% endif %}>{{ part.sname }}</option>
 {% endfor %}
 </select>
-</p>
 </div>
 
-<p><b>Пароль</b></p><p><input name='pass' type='password' /></p>
-<p style="margin-top: 20px"><input type="submit" name='adduser' value='Готово' /></p>
+<div class="form-inline">
+<b>Quota</b>&nbsp;
+<input class="span1" type="text" name="quota_val" value="100">
+<select class="span1" name="quota_unit">
+	<option value="mb">Mb</option>
+	<option value="gb">Gb</option>
+</select>
+</div>
+
+</div>
+
+<p style="margin-top: 20px"><input type="submit" name='adduser' value='OK' /></p>
+
 </div>
 
 </form>

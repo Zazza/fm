@@ -1,73 +1,86 @@
-<div style="font-weight: bold; margin-bottom: 20px">Текущая папка: [{{ shPath }}]</div>
+<div id="fmTop">
+	<div style="float: left; margin-right: 20px"><b>Current dir: [{{ shPath }}]</b></div>
+	<div style="float: left">
+		<div id="servSel">
+			<div id="fm_sel" class="btn"><img style="vertical-align: middle" src="{{ registry.uri }}img/plus.png" /> Select All</div>
+			<div id="fm_unsel" class="btn"><img style="vertical-align: middle" src="{{ registry.uri }}img/minus.png" /> Unselect All</div>
+		</div>
+	</div>
+	<div style="float: right"><b>Size:</b> <span id="fm_total">{{ totalsize }}</span></div>
+</div>
 
 <div style="overflow: hidden">
 
+{% set i = 0 %}
 {% for part in dirs %}
 {% if part.name != ".." %}
+{% set i = i + 1 %}
 
 {% if part.close %}{% set opacity = "; opacity: 0.2;" %}{% else %}{% set opacity = "; opacity: 1.0;" %}{% endif %}
 
-<div id="fm_dirs" style="text-align: center; cursor: pointer">
-	<div onclick="chdir('{{ part.name }}')"><img src="{{ registry.uri }}img/ftypes/folder.png" style="width: 50px{{ opacity }}" alt="[DIR]" /></div>
-	<div onclick="chdir('{{ part.name }}')" style="font-weight: bold">{{ part.name }}</div>
-	
-	<div>
-		<a style="color: #777" onclick="shDirRight('{{ part.id }}')">[права]</a>
-		<a style="color: #777" href="#" onclick="rmDirDialog('{{ part.name }}')">[удалить]</a>
-	</div>
+<div class="fm_dirs fm_dirs{{ i }}" title="{{ part.name }}" id="d_{{ part.id }}"  style="text-align: center; cursor: pointer">
+<div class="fm_unsellabel">
+	<div ondblClick="chdir('{{ part.id }}')"><img src="{{ registry.uri }}img/ftypes/folder.png" style="width: 50px{{ opacity }}" alt="[DIR]" /></div>
+	<div ondblClick="chdir('{{ part.id }}')" class="dname">{{ part.name }}</div>
+</div>
 </div>
 {% else %}
-<div id="fm_dirs" style="text-align: center; cursor: pointer">
-	<div onclick="chdir('{{ part.name }}')"><img src="{{ registry.uri }}img/ftypes/folder.png" style="width: 50px{{ opacity }}" alt="[DIR]" /></div>
-	<div onclick="chdir('{{ part.name }}')" style="font-weight: bold">[..]</div>
+<div class="fm_dirs_up" title="{{ part.name }}" style="text-align: center; cursor: pointer">
+	<div ondblClick="chdir('{{ part.pid }}')"><img src="{{ registry.uri }}img/ftypes/folder.png" style="width: 50px{{ opacity }}" alt="[DIR]" /></div>
+	<div ondblClick="chdir('{{ part.pid }}')">[..]</div>
 </div>
 {% endif %}
 {% endfor %}
 
 <div id="fm_uploadDir">
-{% set i = 0 %}
+
 {% for part in files %}
 {% set i = i + 1 %}
 
 {% if part.close %}{% set opacity = "; opacity: 0.2;" %}{% else %}{% set opacity = "; opacity: 1.0;" %}{% endif %}
 
-<div id="fm_file{{ i }}" class="fm_unsellabel" style="text-align: center; cursor: pointer">
-	<a class="fm_pre" name="{{ part.name }}" id="fm_filename{{ i }}"><img src="{{ registry.uri }}img/ftypes/{{ part.ico }}" style="width: 50px{{ opacity }}" alt="[FILE]" /></a>
-	<div style="font-weight: bold">{{ part.shortname }}</div>
+<div id="fm_file{{ i }}" title="{{ part.name }}" class="fm_file" style="text-align: center; cursor: pointer">
+<div class="fm_unsellabel">
+	<a class="fm_pre" name="{{ part.name }}" id="fm_filename{{ i }}"><img src="{{ registry.uri }}{{ part.ico }}" style="height: 50px{{ opacity }}" alt="[FILE]" /></a>
+	<div class="fname">{{ part.shortname }}</div>
+	<div class="fullname" style="display: none">{{ part.name }}</div>
 	
-	<div style="color: #777">{{ part.date }}</div>
-	<div style="color: #777">размер: {{ part.size }}</div>
+	<div style="color: #777">size:&nbsp;{{ part.size }}</div>
 	<div id="fs_{{ part.id }}" style="color: green; font-weight: bold; {% if part.share %}display: block{% else %}display: none{% endif %}">Share</div>
 </div>
-{% else %}
-<div id="fm_empty" style="text-align: center; width: 100%">пусто</div>
+</div>
 {% endfor %}
 </div>
 
 </div>
 
-<p style="padding: 0; margin: 4px 0"><b>Итого:</b> <span id="fm_total">{{ totalsize }}</span></p>
-
 <input name="lastIdRow" id="fm_lastIdRow" value="{{ i }}" type="hidden" />
 <input name="max" id="fm_max" value="{{ i }}" type="hidden" />
 
 <script type="text/javascript">
-xOffset = -15;
-yOffset = 15;
-
-pre();
-
 $(function(){
-	$("#tabs").tabs();
-	$("#clip").html('{{ clip }}');
+	{% if clip %}
+	$("#clip").html("{{ clip }}");
+	{% else %}
+	$("#clip").html("<li style='text-align: center'>empty</li>");
+	{% endif %}
 	
 	{% if admin %}
-	$("#admbtn").addClass("fmadmbtn_en");
-	$("#admbtn").removeClass("fmadmbtn_dis");
+	$("#admbtn").removeClass("btn-danger").addClass("btn-success");
+	$("#adminFunc").show();
 	{% else %}
-	$("#admbtn").addClass("fmadmbtn_dis");
-	$("#admbtn").removeClass("fmadmbtn_en");
+	$("#admbtn").removeClass("btn-success").addClass("btn-danger");
+	$("#adminFunc").hide();
 	{% endif %}
+});
+
+$(document).keyup(function(e) {
+	switch(e.keyCode) {
+		case 45: createDirDialog(); break;
+		case 46: delmany(); break;
+		case 67: copyFiles(); break;
+		case 80: pastFiles(); break;
+	};
 });
 
 $("#fm_sel").click(function() {
@@ -86,9 +99,28 @@ $(".fm_sellabel").live("click", function(){
     $(this).removeClass("fm_sellabel").addClass("fm_unsellabel");
 });
 
+function getCol() {
+	var col = 0;
+	for (i = 1; i <= parseInt($("#fm_max").val()); i++) {
+    	if ($(".fm_dirs" + i + " > div").attr("class") == "fm_sellabel") {
+    		col++;
+    	};
+    	
+        if ($("#fm_file" + i + " > div").attr("class") == "fm_sellabel") {
+        	col++;
+        }
+    };
+    
+    return col;
+}
+
 function delmany() {
     for (i = 1; i <= parseInt($("#fm_max").val()); i++){
-        if ($("#fm_file" + i).attr("class") == "fm_sellabel") {
+    	if ($(".fm_dirs" + i + " > div").attr("class") == "fm_sellabel") {
+    		deldir($(".fm_dirs" + i + "").attr("id"), $(".fm_dirs" + i + "").attr("title"));
+    	};
+    	
+        if ($("#fm_file" + i + " > div").attr("class") == "fm_sellabel") {
             del($("#fm_filename" + i + "").attr("name"), "fm_file" + i);
         }
     };
@@ -96,10 +128,15 @@ function delmany() {
     update();
 };
 
-function copyFiles() {
-    var selfiles = "";
-    for (i = 1; i <= parseInt($("#fm_max").val()); i++){
-        if ($("#fm_file" + i).attr("class") == "fm_sellabel") {
+function restore() {
+	var selfiles = "";
+    for (i = 1; i <= parseInt($("#fm_max").val()); i++) {
+    	if ($(".fm_dirs" + i + " > div").attr("class") == "fm_sellabel") {
+    		var did = $(".fm_dirs" + i + "").attr("id");
+    		selfiles += "&dir[]" + "=" + did.substr(2);
+    	};
+    	
+        if ($("#fm_file" + i + " > div").attr("class") == "fm_sellabel") {
             selfiles += "&file[]" + "=" + encodeURIComponent($("#fm_filename" + i + "").attr("name"));
         }
     };
@@ -107,77 +144,96 @@ function copyFiles() {
 	$.ajax({
 		type: "POST",
 		url: '{{ registry.uri }}/ajax/fm/',
-		data: "action=copyFiles&" + selfiles,
+		data: "did={{ curdir }}&action=restore&" + selfiles,
+		success: function(res) {
+			$("#fm_filesystem").html(res);
+		}
+	});
+}
+
+function delmanyrealConfirm() {
+	$('<div title="Remove">You really want to remove files without restoration possibility?</div>').dialog({
+		buttons: {
+			"Yes": function() { delmanyreal(); $(this).dialog("close"); },
+			"No": function() { $(this).dialog("close"); }
+		},
+		width: 350,
+		height: 200
+	});
+};
+
+function delmanyreal() {
+    for (i = 1; i <= parseInt($("#fm_max").val()); i++){
+    	if ($(".fm_dirs" + i + " > div").attr("class") == "fm_sellabel") {
+    		deldirReal($(".fm_dirs" + i + "").attr("id"));
+    	};
+    	
+        if ($("#fm_file" + i + " > div").attr("class") == "fm_sellabel") {
+            delReal($("#fm_filename" + i + "").attr("name"), "fm_file" + i);
+        }
+    };
+    
+    update();
+}
+
+function copyFiles() {
+    var selfiles = "";
+    for (i = 1; i <= parseInt($("#fm_max").val()); i++) {
+    	if ($(".fm_dirs" + i + " > div").attr("class") == "fm_sellabel") {
+    		var did = $(".fm_dirs" + i + "").attr("id");
+    		selfiles += "&dir[]" + "=" + did.substr(2);
+    	};
+    	
+        if ($("#fm_file" + i + " > div").attr("class") == "fm_sellabel") {
+            selfiles += "&file[]" + "=" + encodeURIComponent($("#fm_filename" + i + "").attr("name"));
+        }
+    };
+
+	$.ajax({
+		type: "POST",
+		url: '{{ registry.uri }}/ajax/fm/',
+		data: "did={{ curdir }}&action=copyFiles&" + selfiles,
 		success: function(res) {
 	        $("#clip").html(res);
 		}
 	});
 }
 
-function pre() {
-	$(".fm_pre").click(function(){
-		var fname = this.name;
-		
-		var md5 = getMD5Name(fname);
-		
-		$("#share").attr("onchange", "share('" + md5 + "')");
-		
-		var data = getShare(md5);
-		if (data) {
-			$("#share").attr("checked", "checked");
-			$("#shareName").show();
-			$(".fname").text(data);
-		} else {
-			$("#share").removeAttr("checked");
-			$("#shareName").hide();
-		}
-
-		$("#fid").val(md5);
-
-		var text = getFileText(md5);
-		$("#dfiletext").html(text);
-		
-		$("#dopenfile").html("<b>Скачать файл: </b><a style='color: blue' href='{{ registry.uri }}attach/?filename=" + fname + "' id='fdname'>" + fname + "</a>");
-
-		var history = getFileHistory(md5);
-		$("#fdhistory").html(history);
-
-		var chmod = getFileChmod(md5);
-		$("#fdchmod").html(chmod);
-
-		$('#fDialog').dialog({
-		    buttons: {
-				"Закрыть": function() { $(this).dialog("close"); }
-			},
-			width: 450,
-			height: 470
-		});
-	});
-		
-    $(".fm_pre").hover(function(e){
-    	var fname = encodeURIComponent(this.name);
-    	
-    	var md5 = getMD5Name(fname);
-
-        var ext = fname.substr(fname.lastIndexOf(".") + 1, fname.length-fname.lastIndexOf(".") - 1);
-        ext = ext.toLowerCase();
-        
-        if ( (ext == "gif") || (ext == "png") || (ext == "jpg") || (ext == "jpeg") ) {
-            
-    	$("body").append("<p id='fm_preview_t'><img src='{{ registry.uri }}/{{ _thumb }}" + md5 + "' alt='просмотр изображения' id='fm_t_img_pre' /></p>");
-    	
-    	var img = new Image();
-    	img.src = "{{ _thumb }}" + md5;
-    
-    	$("#fm_preview_t")
-    		.css("top",(e.pageY - xOffset) + "px")
-    		.css("left",(e.pageX - yOffset) + "px")
-    		.css("border", "0px")
-    		.fadeIn("fast");
+$(".fm_file").contextMenu('fileMenu', {
+    bindings: {
+      'rm_open': function(t) {
+		window.location.href = "{{ registry.uri }}attach/?did={{ curdir }}&filename=" + encodeURIComponent(t.title);
+      },
+      'rm_rename': function(t) {
+		fileRename(t.title); 
+      },
+      'rm_main': function(t) {
+		getfInfo(t.title, 0); 
+      },
+      'rm_history': function(t) {
+        getfInfo(t.title, 1); 
+      },
+      'rm_right': function(t) {
+		getfInfo(t.title, 2); 
       }
-    },
-    function(){
-    	$("#fm_preview_t").remove();
-    });
-};
+    }
+});
+
+$(".fm_dirs").contextMenu('dirMenu', {
+    bindings: {
+      'rd_open': function(t) {
+		chdir(t.title);
+      },
+      'rd_rename': function(t) {
+		dirRename(t.id);
+      },
+      'rd_right': function(t) {
+		shDirRight(t.id);
+      }
+    }
+});
+
+$(".fm_pre").live("dblclick", function(){
+	window.location.href = "{{ registry.uri }}attach/?did={{ curdir }}&filename=" + encodeURIComponent($(this).attr("name"));
+});
 </script>

@@ -4,7 +4,7 @@ class Controller_Users_EditGroup extends Controller_Users {
 	public function index() {
 		if ($this->registry["ui"]["admin"]) {
 
-			$this->view->setTitle("Пользователи");
+			$this->view->setTitle("Edit group");
 			 
 			if (isset($this->args[1])) {
 				$gname = $this->muser->getGroupName($this->args[1]);

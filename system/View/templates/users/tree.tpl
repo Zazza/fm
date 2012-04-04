@@ -1,11 +1,21 @@
-<div class="button" style="font-weight: bold"><img border="0" style="vertical-align: middle;" alt="plus" src="{{ registry.uri }}img/plus-button.png" />&nbsp;<a href="{{ registry.uri }}users/addgroup/" style="text-decoration: none">Новая группа</a></div>
+<div class="btn btn-success" style="font-weight: bold">
+	<i class="icon-star icon-white"></i>
+	<a href="{{ registry.uri }}users/addgroup/" style="text-decoration: none; color: white">New group</a>
+</div>
 
-<table cellpadding="3" cellspacing="3" style="margin-bottom: 20px">
+
+<div class="btn btn-success" style="font-weight: bold">
+	<i class="icon-user icon-white"></i>
+	<a href="{{ registry.uri }}users/adduser/" style="text-decoration: none; color: white">New user</a>
+</div>
+
+
+<table cellpadding="3" cellspacing="3" style="margin: 40px 0">
 <tr>
-<td align="center" style="font-weight: bold; font-size: 10px">удалить</td>
-<td align="center" style="font-weight: bold; font-size: 10px">изменить</td>
-<td align="center" style="font-weight: bold; font-size: 10px">структура</td>
-<td align="center" style="font-weight: bold; font-size: 10px">имя группы</td>
+<td align="center" style="font-weight: bold; font-size: 10px">delete</td>
+<td align="center" style="font-weight: bold; font-size: 10px">edit</td>
+<td align="center" style="font-weight: bold; font-size: 10px">structure</td>
+<td align="center" style="font-weight: bold; font-size: 10px">group name</td>
 {% for part in group %}
 <tr>
 <td align="center" style="border: 1px solid #ccc">
@@ -25,17 +35,12 @@
 </td>
 </tr>
 {% else %}
-<tr><td colspan="3" align="center" style="border: 1px solid #ccc">Пусто</td></tr>
+<tr><td colspan="3" align="center" style="border: 1px solid #ccc">empty</td></tr>
 {% endfor %}
 </table>
 
-<div class="button" style="font-weight: bold"><img border="0" style="vertical-align: middle;" alt="plus" src="{{ registry.uri }}img/plus-button.png" /> <a href="{{ registry.uri }}users/adduser/" style="text-decoration: none">Новый пользователь</a></div>
 
-
-
-<div style="margin-top: 50px">
-	<h3>Структура пользователей</h3>
-	<div id="utree">
-		<ul id="Pstructure" class="filetree">{{ list }}</ul>
-	</div>
+<h3>Users structure</h3>
+<div id="utree">
+	<ul id="Pstructure" class="filetree">{{ list }}</ul>
 </div>

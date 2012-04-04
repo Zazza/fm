@@ -2,11 +2,22 @@
 class Model_File extends Engine_Model {
 	private $_groups = null;
 	private $_users = null;
-	private $_desc = null;
+	private $_desc = null;	
+	private $_rec = array();
+	private $_tree = null;
+	private $_curdir = 0;
+	
+	function __construct() {
+		parent::__construct($this->registry);
+
+		if (isset($this->registry["post"]["did"])) {
+			$this->_curdir = $this->registry["post"]["did"];
+		}
+	}
 	
 	// ICO MIME TYPE
 	private $_MIME = array(
-		array("name" => "img", "ico" => "image.png", "ext" => array("jpg", "jpeg", "gif", "png", "bmp")),
+		array("name" => "img", "ico" => "preview", "ext" => array("jpg", "jpeg", "gif", "png", "bmp")),
 		array("name" => "doc", "ico" => "msword.png", "ext" => array("doc", "docx", "rtf", "oft")),
 		array("name" => "pdf", "ico" => "pdf.png", "ext" =>  array("pdf", "djvu")),
 		array("name" => "txt", "ico" => "text.png", "ext" =>  array("txt")),
@@ -18,11 +29,18 @@ class Model_File extends Engine_Model {
 		array("name" => "zip", "ico" => "compress.png", "ext" =>  array("zip", "rar", "7z", "tar", "bz2", "gz"))
 	);
 
-	public function setIcon($ext) {
-		$ico = "unknown.png";
+	public function setIcon($ext, $md5) {
+		$ico = "img/ftypes/unknown.png";
 		
 		for($i=0; $i<count($this->_MIME); $i++) {
-			if (in_array($ext, $this->_MIME[$i]["ext"])) $ico = $this->_MIME[$i]["ico"];
+			if (in_array(mb_strtolower($ext), $this->_MIME[$i]["ext"])) {
+				$ico = $this->_MIME[$i]["ico"];
+				if ($ico == "preview") {
+					$ico = $this->registry['path']['upload'] . "_thumb/" . $md5;
+				} else {
+					$ico = "img/ftypes/" . $ico;
+				}
+			}
 		}
 		
 		return $ico;
@@ -69,7 +87,8 @@ class Model_File extends Engine_Model {
 		LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
 		LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
 		LEFT JOIN fm_fs_chmod AS r ON (r.fid = f1.id)
-		WHERE f.filename = :filename AND f.pdirid = :pdirid AND f.close = 0
+		WHERE f.filename = :filename AND f.pdirid = :pdirid
+		ORDER BY f.id DESC
 		LIMIT 1";
         
         $res = $this->registry['db']->prepare($sql);
@@ -82,8 +101,24 @@ class Model_File extends Engine_Model {
 	// END ATTACH
 	
 	// FM AJAX
+	function getDirParams($did) {
+		$sql = "SELECT fd.id, fd.uid, fd.name AS `name`, fdc.right, users.login AS owner
+		        FROM fm_dirs AS fd
+		        LEFT JOIN fm_dirs_chmod AS fdc ON (fdc.did = fd.id)
+		        LEFT JOIN users ON (users.id = fd.uid)
+		        WHERE fd.id = :did
+		        LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":did" => $did);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+
+		return $data[0];
+	}
+	
 	function getFileParamsFromMd5($md5) {
-		$sql = "SELECT f.id, f.filename, f.size, h.timestamp, MIN(f1.id) AS min_id, MAX(f1.id) AS max_id, f.pdirid
+		$sql = "SELECT f.id, f.filename, f.size, h.timestamp, MIN(f1.id) AS min_id, MAX(f1.id) AS max_id, f.pdirid, h.uid AS uid
 	        FROM fm_fs AS f
 	        LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
 	        LEFT JOIN fm_fs AS f1 ON (f.filename = f1.filename)
@@ -113,24 +148,32 @@ class Model_File extends Engine_Model {
 	}
 	
 	function getFileParamsFromName($filename) {
-		$fm = & $_SESSION["fm"];
-		if (isset($fm["dir"])) {
-			$curdir = $fm["dir"];
-		} else {
-			$curdir = 0;
-		}
+		$curdir = $this->_curdir;
 	
-		$sql = "SELECT f.id, f.md5, f.size, h.timestamp, MIN(f1.id) AS min_id, MAX(f1.id) AS max_id, f.pdirid
+		$sql = "SELECT f.id, f.md5, f.size, h.timestamp, f.pdirid, h.uid AS uid
 	        FROM fm_fs AS f
 	        LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-	        LEFT JOIN fm_fs AS f1 ON (f.filename = f1.filename)
-	        WHERE f.filename = :filename AND f.pdirid = :pdirid AND f.close = 0
+	        WHERE f.filename = :filename AND f.pdirid = :pdirid
+	        ORDER BY f.id DESC
 	        LIMIT 1";
 	
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":filename" => $filename, ":pdirid" => $curdir);
 		$res->execute($param);
 		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		$sql = "SELECT MIN(f.id) AS min_id, MAX(f.id) AS max_id
+		FROM fm_fs AS f
+		WHERE f.filename = :filename AND f.pdirid = :pdirid
+		LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":filename" => $filename, ":pdirid" => $curdir);
+		$res->execute($param);
+		$p = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		$data[0]["min_id"] = $p[0]["min_id"];
+		$data[0]["max_id"] = $p[0]["max_id"];
 	
 		$right[0]["count"] = 0;
 	
@@ -193,7 +236,7 @@ class Model_File extends Engine_Model {
 	}
 	
 	function getAdminFiles($curdir) {
-		$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
+		$sql = "SELECT DISTINCT(f.id), f.md5, f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
 				FROM fm_fs AS f
 				LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
 				LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
@@ -202,7 +245,7 @@ class Model_File extends Engine_Model {
 				WHERE f.pdirid = :pid AND r.right != 'NULL'
 				AND f.id IN 
 				(
-					SELECT MAX(id) FROM fm_fs GROUP BY filename ORDER BY id DESC
+					SELECT MAX(id) FROM fm_fs GROUP BY filename, pdirid ORDER BY id DESC
 				)
 				GROUP BY f.filename
 				ORDER BY f.filename, f.id DESC";
@@ -216,7 +259,7 @@ class Model_File extends Engine_Model {
 	}
 	
 	function getFiles($curdir) {
-		$sql = "SELECT DISTINCT(f.id), f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
+		$sql = "SELECT DISTINCT(f.id), f.md5, f.filename AS `name`, f.size, h.uid, h.timestamp, r.right AS `right`, f.close AS `close`, s.desc AS share
 				FROM fm_fs AS f
 				LEFT JOIN fm_fs AS f1 ON (f1.filename = f.filename)
 				LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
@@ -235,8 +278,7 @@ class Model_File extends Engine_Model {
 	}
 	
 	function delfile($fname) {
-		$fm = & $_SESSION["fm"];
-		$curdir = $fm["dir"];
+		$curdir = $this->_curdir;
 
 		$sql = "UPDATE fm_fs SET `close` = '1' WHERE `filename` = :filename AND pdirid = :pdirid";
 	
@@ -245,9 +287,37 @@ class Model_File extends Engine_Model {
 		$res->execute($param);
 	}
 	
+	function delfilereal($fname) {
+		$curdir = $this->_curdir;
+		
+		$data = $this->getFileParamsFromName($fname);
+		
+		if (file_exists($this->registry["rootPublic"] . $this->registry["path"]["upload"] . $data["md5"])) {
+			unlink($this->registry["rootPublic"] . $this->registry["path"]["upload"] . $data["md5"]);
+			unlink($this->registry["rootPublic"] . $this->registry["path"]["upload"] . "_thumb/" . $data["md5"]);
+		}
+
+		$sql = "DELETE FROM fm_fs WHERE `filename` = :filename AND pdirid = :pdirid";
+	
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":filename" => $fname, ":pdirid" => $curdir);
+		$res->execute($param);
+		
+		$sql = "DELETE FROM fm_fs_chmod WHERE `fid` = :fid";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":fid" => $data["id"]);
+		$res->execute($param);
+		
+		$sql = "DELETE FROM fm_fs_history WHERE `fid` = :fid";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":fid" => $data["id"]);
+		$res->execute($param);
+	}
+	
 	function getTotalSize() {
-		$fm = & $_SESSION["fm"];
-		$curdir = $fm["dir"];
+		$curdir = $this->_curdir;
 	
 		$totalSize = 0;
 	
@@ -321,7 +391,7 @@ class Model_File extends Engine_Model {
 			$sql = "INSERT INTO fm_dirs (uid, `pid`, `name`) VALUES (:uid, :pid, :name)";
 			 
 			$res = $this->registry['db']->prepare($sql);
-			$param = array(":uid" => $this->registry["ui"]["id"], ":pid" => $curdir, ":name" => $dirName);
+			$param = array(":uid" => $this->registry["ui"]["id"], ":pid" => $curdir, ":name" => htmlspecialchars($dirName));
 			$res->execute($param);
 				
 			$did = $this->registry['db']->lastInsertId();
@@ -329,7 +399,7 @@ class Model_File extends Engine_Model {
 			$sql = "INSERT INTO fm_dirs_chmod (did, `right`) VALUES (:did, :json)";
 			 
 			$res = $this->registry['db']->prepare($sql);
-			$param = array(":did" => $did, ":json" => '{"frall":"true"}');
+			$param = array(":did" => $did, ":json" => '{"frall":"2"}');
 			$res->execute($param);
 			
 			return true;
@@ -338,12 +408,79 @@ class Model_File extends Engine_Model {
 		}
 	}
 	
-	function rmDir($curdir, $dirName) {
-		$sql = "UPDATE fm_dirs SET close = 1 WHERE `pid` = :pid AND `name` = :name AND close = 0 LIMIT 1";
-	
+	function rmDir($curdir) {
+		$sql = "UPDATE fm_dirs SET close = 1 WHERE id = :pid AND close = 0 LIMIT 1";
+		
 		$res = $this->registry['db']->prepare($sql);
-		$param = array(":pid" => $curdir, ":name" => $dirName);
+		$param = array(":pid" => $curdir);
 		$res->execute($param);
+	}
+	
+	private function _recursDir($id) {
+		$sql = "SELECT id FROM fm_dirs WHERE `pid` = :pid";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":pid" => $id);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		if (count($data) > 0) {
+			foreach($data as $part) {
+				$this->_rec[] = $id;
+				$this->_recursDir($part["id"]);
+			}
+		} else {
+			$this->_rec[] = $id;
+		}
+	}
+	
+	function rmDirReal($did) {
+		$this->_recursDir($did);
+		$this->_rec = array_unique($this->_rec);
+		foreach($this->_rec as $part) {
+			$sql = "DELETE FROM fm_dirs WHERE id = :id";
+			
+			$res = $this->registry['db']->prepare($sql);
+			$param = array(":id" => $part);
+			$res->execute($param);
+			
+			$sql = "DELETE FROM fm_dirs_chmod WHERE did = :id";
+			
+			$res = $this->registry['db']->prepare($sql);
+			$param = array(":id" => $part["id"]);
+			$res->execute($param);
+			
+			$this->_delFileFromDirReal($part);
+		}
+	}
+	
+	private function _delFileFromDirReal($pid) {
+		$sql = "SELECT id, filename FROM fm_fs WHERE pdirid = :pid";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":pid" => $pid);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		foreach($data as $part) {
+			$sql = "DELETE FROM fm_fs WHERE `filename` = :filename AND pdirid = :pdirid";
+			
+			$res = $this->registry['db']->prepare($sql);
+			$param = array(":filename" => $part["filename"], ":pdirid" => $pid);
+			$res->execute($param);
+				
+			$sql = "DELETE FROM fm_fs_chmod WHERE `fid` = :fid";
+				
+			$res = $this->registry['db']->prepare($sql);
+			$param = array(":fid" => $part["id"]);
+			$res->execute($param);
+				
+			$sql = "DELETE FROM fm_fs_history WHERE `fid` = :fid";
+				
+			$res = $this->registry['db']->prepare($sql);
+			$param = array(":fid" => $part["id"]);
+			$res->execute($param);
+		}
 	}
 	
 	function moveFiles($curdir, $filename, $buffer) {
@@ -352,6 +489,35 @@ class Model_File extends Engine_Model {
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":dir" => $curdir, ":filename" => $filename, ":curdir" => $buffer);
 		$res->execute($param);
+	}
+	
+	private function _showRecursDid($current, $id) {
+		$sql = "SELECT pid FROM fm_dirs WHERE id = :id LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":id" => $id);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		if ($data[0]["pid"] == 0) {
+			return true;
+		} else if ($data[0]["pid"] == $current) {
+			return false;
+		} else {
+			return $this->_showRecursDid($current, $data[0]["pid"]);
+		}
+	}
+	
+	function moveDir($curdir, $did) {
+		if ($curdir != $did) {
+			if ($this->_showRecursDid($did, $curdir)) {
+				$sql = "UPDATE fm_dirs SET pid = :pid WHERE id = :id AND close = 0";
+				
+				$res = $this->registry['db']->prepare($sql);
+				$param = array(":pid" => $curdir, ":id" => $did);
+				$res->execute($param);
+			}
+		}
 	}
 	
 	function issetFile($file, $curdir) {
@@ -398,7 +564,7 @@ class Model_File extends Engine_Model {
 		$sql = "INSERT INTO fm_text SET fid = :fid, uid = :uid, `text` = :text";
 		 
 		$res = $this->registry['db']->prepare($sql);
-		$param = array(":fid" => $fid, ":uid" => $this->registry["ui"]["id"], ":text" => nl2br($text));
+		$param = array(":fid" => $fid, ":uid" => $this->registry["ui"]["id"], ":text" => htmlspecialchars(nl2br($text)));
 		$res->execute($param);
 	}
 	
@@ -433,16 +599,16 @@ class Model_File extends Engine_Model {
 	
 
 	
-	function getUsersChmod($md5, $curdir) {
+	function getUsersChmod($md5) {
 		$sql = "SELECT r.right AS `right`
 	        FROM fm_fs AS fs
-	        LEFT JOIN fm_fs AS fs1 ON (fs1.filename =fs.filename)
+	        LEFT JOIN fm_fs AS fs1 ON (fs1.filename = fs.filename)
 	        LEFT JOIN fm_fs_chmod AS r ON (r.fid = fs1.id)
-	        WHERE fs.md5 = :md5 AND fs.pdirid = :pdirid AND fs1.pdirid = :pdirid
+	        WHERE fs.md5 = :md5
 	        LIMIT 1";
 	
 		$res = $this->registry['db']->prepare($sql);
-		$param = array(":md5" => $md5, ":pdirid" => $curdir);
+		$param = array(":md5" => $md5);
 		$res->execute($param);
 		$data = $res->fetchAll(PDO::FETCH_ASSOC);
 	
@@ -534,5 +700,78 @@ class Model_File extends Engine_Model {
 	}
 	// END FM AJAX
 	
+	function getMD5FromFnameDir($filename, $dir) {
+		$sql = "SELECT md5
+		FROM fm_fs
+		WHERE filename = :filename AND pdirid = :dir
+		LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":filename" => $filename, ":dir" => $dir);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		return $data[0]["md5"];
+	}
+	
+	function restoreFile($filename, $pid) {
+		$sql = "UPDATE fm_fs SET `close` = '0' WHERE filename = :filename AND pdirid = :pdirid ORDER BY id DESC LIMIT 1";
+
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":filename" => $filename, ":pdirid" => $pid);
+		$res->execute($param);
+	}
+	
+	function restoreDir($id) {
+		$sql = "UPDATE fm_dirs SET `close` = '0' WHERE id = :id LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":id" => $id);
+		$res->execute($param);
+	}
+	
+	function showTree($pid, $admin = false) {
+		if ($admin) {
+			$sql = "SELECT id,name,pid FROM fm_dirs WHERE pid = :pid ORDER BY name";
+		} else {
+			$sql = "SELECT id,name,pid FROM fm_dirs WHERE pid = :pid AND close = 0 ORDER BY name";
+		}
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":pid" => $pid);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+	
+		if (count($data) > 0) {
+			$this->_tree .= "<ul>";
+			foreach($data as $part) {
+				$id1 = $part["id"];
+				$this->_tree .= "<li>";
+				$this->_tree .= "<span class='folder' title='d_" . $part["id"] . "'><a class='tbranch' href='" . $this->registry["uri"] . "fm/?id=" . rawurlencode($part["id"]) . "'>" . $part["name"] . "</a></span>";
+				$this->showTree($id1, $admin);
+			}
+			$this->_tree .= "</ul>";
+		}
+	}
+	
+	function getTree() {
+		return $this->_tree;
+	}
+	
+	function dirRename($did, $name) {
+		$sql = "UPDATE fm_dirs SET `name` = :name WHERE id = :did LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":did" => $did, ":name" => htmlspecialchars($name));
+		$res->execute($param);
+	}
+	
+	function fileRename($curdir, $oldname, $newname) {
+		$sql = "UPDATE fm_fs SET filename = :newname WHERE filename = :oldname AND pdirid = :curdir";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":curdir" => $curdir, ":oldname" => htmlspecialchars($oldname), ":newname" => htmlspecialchars($newname));
+		$res->execute($param);
+	}
 }
 ?>

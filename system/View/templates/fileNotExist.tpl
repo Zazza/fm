@@ -1,1 +1,1 @@
-<p>Файл не найден</p>
+<p>File not found</p>

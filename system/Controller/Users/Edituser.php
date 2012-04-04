@@ -4,14 +4,26 @@ class Controller_Users_Edituser extends Controller_Users {
 	public function index() {
 		if ($this->registry["ui"]["admin"]) {
 
-			$this->view->setTitle("Пользователи");
+			$this->view->setTitle("Edit user");
 
 			if (isset($_POST['edituser'])) {
 				$group = $this->muser->getGroups();
 				$data = $this->muser->getUserInfo($this->args[1]);
 
 				$validate = new Model_Validate();
-				 
+
+				if (!is_numeric($_POST["quota_val"])) {
+					$res_val = 100;
+				} else {
+					$val = $_POST["quota_val"];
+				}
+				if ($_POST["quota_unit"] == "mb") {
+					$res_val = $val * 1024 * 1024;
+				}
+				if ($_POST["quota_unit"] == "gb") {
+					$res_val = $val * 1024 * 1024 * 1024;
+				}
+
 				$err = array();
 				if ($_POST["login"] != $data["login"]) {
 					if ($txt = $validate->login($_POST["login"])) { $err[] = $txt; };
@@ -28,7 +40,7 @@ class Controller_Users_Edituser extends Controller_Users {
 						$notify = 1;
 					}
 					 
-					$uid = $this->muser->editUser($this->args[1], $_POST["login"]);
+					$uid = $this->muser->editUser($this->args[1], $_POST["login"], $res_val);
 					if ($data["pass"] != $_POST["pass"]) {
 						$this->muser->editUserPass($this->args[1], $_POST["pass"]);
 					}
@@ -47,6 +59,17 @@ class Controller_Users_Edituser extends Controller_Users {
 				if ($data["admin"]) {
 					$data["priv"] = "admin";
 				}
+				
+				$quota = $data["quota"];
+				
+		    	if (($quota / 1024 / 1024) > 1) {
+		    		$data["quota_val"] = round($quota / 1024 / 1024, 2);
+		    		$data["quota_unit"] = "mb";
+		    	};
+		    	if (($quota / 1024 / 1024 / 1024) > 1) {
+		    		$data["quota_val"] = round($quota / 1024 / 1024 / 1024, 2);
+		    		$data["quota_unit"] = "gb";
+		    	};
 				 
 				$this->view->users_edituser(array("post" => $data, "group" => $group));
 			}

@@ -1,16 +1,18 @@
+<h2>Structure</h2>
+
 <div style="margin-bottom: 20px">
 
-добавить:&nbsp;<input type="text" id="name" name="name" style="width: 150px; margin-right: 20px" />
+New subgroup name:&nbsp;<input type="text" id="name" name="name" style="width: 150px; margin-right: 20px" />
 
-<input type="button" value="Добавить" onclick="addTree()" />
+<input type="button" value="Add" onclick="addTree()" />
 
 </div>
 
 <div id="litree"></div>
 
-<div title="Правка" id="editCat" style="display: none">
+<div title="Edit" id="editCat" style="display: none">
     <input type="text" id="catname" style="width: 150px" />
-<div>
+</div>
 
 <script type="text/javascript">
 $(document).ready(function(){
@@ -43,14 +45,14 @@ function addTree() {
 }
 
 function delCat(id) {
-    $('<div title="Удаление">Действительно удалить?<div>').dialog({
+    $('<div title="Delete">Really delete?<div>').dialog({
 		modal: true,
 	    buttons: {
-            "Да": function() {
+            "Yes": function() {
                 delCatOK(id);
                 $(this).dialog("close");
             },
-			"Нет": function() {
+			"No": function() {
                  $(this).dialog("close");
             }
 		},
@@ -85,7 +87,7 @@ function editCat(id) {
     $("#editCat").dialog({
 		modal: true,
 	    buttons: {
-            "Готово": function() {
+            "OK": function() {
                 var data = "action=editCat&id=" + id + "&name=" + $("#catname").val();
             	$.ajax({
             		type: "POST",

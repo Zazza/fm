@@ -1,7 +1,8 @@
 <?php
 class View_Index extends Engine_View {
 
-    public $leftBlock = null;
+    private $leftBlock = null;
+    private $bottom = null;
     private $content = null;
     private $profile;
     private $topMenu = null;
@@ -13,12 +14,17 @@ class View_Index extends Engine_View {
     public function setLeftContent($text) {
         $this->leftBlock .= $text;
     }
+    
+    public function setBottom($text) {
+    	$this->bottom .= $text;
+    }
 
 	public function showPage() {
 		$template = $this->main->loadTemplate("page.html");
 		$template->display(array("registry" => $this->registry,
 										"title" => $this->title,
 										"leftBlock" => $this->leftBlock,
+										"bottom" => $this->bottom,
                                 		"main_content" => $this->mainContent,
 										"content" => $this->content));
 	}

@@ -2,6 +2,11 @@
 class Controller_Users extends Engine_Controller {
 	protected $tree;
 	protected $muser;
+	
+	function __construct() {
+		parent::__construct();
+		$this->muser = new Model_User();
+	}
 
 	protected function print_array($arr) {
 		if (!is_array($arr)) {
@@ -36,32 +41,36 @@ class Controller_Users extends Engine_Controller {
 	}
 	
 	public function index() {
-		$this->muser = new Model_User();
-		
         if (isset($this->args[0])) {
             if ($this->args[0] == "addgroup") {
                 
-                Controller_Users_Addgroup::index();
+                $controller = new Controller_Users_Addgroup;
+                $controller->index();
                 
 			} elseif ($this->args[0] == "structure") {
                 
-                Controller_Users_Structure::index();
+                $controller = new Controller_Users_Structure;
+                $controller->index();
 
             } elseif ($this->args[0] == "editgroup") {
                 
-                Controller_Users_Editgroup::index();
+                $controller = new Controller_Users_Editgroup;
+                $controller->index();
 
             } elseif ($this->args[0] == "adduser") {
                 
-                Controller_Users_Adduser::index();
+                $controller = new Controller_Users_Adduser;
+                $controller->index();
                 
            } elseif ($this->args[0] == "edituser") {
                 
-                Controller_Users_Edituser::index();
+                $controller = new Controller_Users_Edituser;
+                $controller->index();
                 
             }
         } else {
-            Controller_Users_List::index();
+            $controller = new Controller_Users_List;
+            $controller->index();
         }
     }
 }

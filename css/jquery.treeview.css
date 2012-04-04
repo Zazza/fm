@@ -28,12 +28,13 @@
 }
 
 .treeview a.selected {
-	background-color: #eee;
+	background-color: #ddd;
+	padding: 2px 4px;
 }
 
 #treecontrol { margin: 1em 0; display: none; }
 
-.treeview .hover { color: red; cursor: pointer; }
+.treeview .hover { color: black; cursor: pointer; }
 
 .treeview li { background: url(../img/treeview/treeview-default-line.gif) 0 0 no-repeat; }
 .treeview li.collapsable, .treeview li.expandable { background-position: 0 -176px; }
@@ -71,3 +72,5 @@
 .filetree span.folder { background: url(../img/treeview/folder.gif) 0 0 no-repeat; }
 .filetree li.expandable span.folder { background: url(../img/treeview/folder-closed.gif) 0 0 no-repeat; }
 .filetree span.file { background: url(../img/treeview/file.gif) 0 0 no-repeat; }
+
+.tbranch_hover { background-color: #C1DCFC; border: 1px solid #7DA2CE; border-radius: 2px 2px 2px 2px; }

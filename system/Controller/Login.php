@@ -1,10 +1,5 @@
 <?php
 class Controller_Login extends Engine_Controller {
-	
-	function __construct() {
-		parent::__construct();
-    }
-
 	public function index() {
 		if (!$this->registry["auth"]) {
             

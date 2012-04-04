@@ -2,71 +2,119 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="icon" type="image/gif" href="{{ registry.uri }}favicon.png" />
 <meta name="description" content="FM" />
 <meta name="keywords" content="FM" />
 <title>{{ title }}</title>
 <link href="{{ registry.uri }}css/Aristo.css" rel="stylesheet" type="text/css" />
 <link href="{{ registry.uri }}css/main.css" rel="stylesheet" media="all" />
 <link href="{{ registry.uri }}css/jquery.treeview.css" rel="stylesheet" type="text/css" />
+<link href="{{ registry.uri }}css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="{{ registry.uri }}css/dropdown.upward.css" type="text/css" rel="stylesheet" />
+<link href="{{ registry.uri }}css/default.css" type="text/css" rel="stylesheet" />
 <script type="text/javascript" src="{{ registry.uri }}js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/jquery.treeview.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/jquery.cookie.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/scripts.js"></script>
 <script type="text/javascript" src="{{ registry.uri }}js/fm.js"></script>
-<script type="text/javascript" src="{{ registry.uri }}js/jquery.watermark.min.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/fileprogress.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/handlers.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/swfupload.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/swfupload.queue.js"></script>
+<script type="text/javascript" src="{{ registry.uri }}js/jquery.contextmenu.r2.packed.js"></script>
 
 <script type="text/javascript">
-    fmInit('{{ registry.uri }}');
+    fmInit('{{ registry.uri }}', '{{ registry.get.id }}');
 </script>
 </head>
 
 <body>
 
-<!-- TOP -->
-<div class="topbar">
-<div class="downsh">
-	<div style="float: left">
-		<div class="menu">
-			<a href="{{ registry.uri }}">Файловый менеджер</a>
-		</div>
-		{% if registry.ui.admin %}
-		<div class="menu">
-			<a href="{{ registry.uri }}users/">Пользователи</a>
-		</div>
-		{% endif %}
-	</div>
-
-	<div style="margin-left: 30px; float: left">С выделенными:&nbsp;
-		<input onclick="delmany()" type="button" value="Удалить" />	
-		<input onclick="copyFiles()" title="копировать" type="button" id="btnCopy" />
-		<input onclick="pastFiles()" title="вставить" type="button" id="btnPast" />
-		
-		<span id="clip">{{ clip }}</span>
-	</div>
-
-	<div style="float: left; margin-left: 30px">
-		<input type="text" name="dirname" id="fm_dirname" placeholder="Имя папки" />
-		<input type="button" onclick="createDir()" value="Создать" />
-		
-		{% if registry.ui.admin %}
-		<input onclick="admin()" id="admbtn" type="button" value="Админ." />
-		{% endif %}
-	</div>
+<div class="navbar">
+	<div class="navbar-inner">
 	
-	<div id="profile">{{ registry.ui.login }} <a href="{{ registry.uri }}exit/">[выход]</a></div>
+	<div class="brand"><img alt="logo" style="height: 23px" src="{{ registry.uri }}img/ostora_small.png" /></div>
+	
+		<div class="container">
+			<ul class="nav">
+				<li class="active">
+					<a href="{{ registry.uri }}">
+						<i class="icon-home icon-white"></i>
+						Filemanager
+					</a>
+				</li>
+				
+				{% if registry.ui.admin %}
+				<li>
+					<a href="{{ registry.uri }}users/">
+						<i class="icon-user icon-white"></i>
+						Users
+					</a>
+				</li>
+
+				<li>
+					<a href="{{ registry.uri }}statistic/">
+						<i class="icon-info-sign icon-white"></i>
+						Statistics
+					</a>
+				</li>
+				{% endif %}
+			</ul>
+			
+			<ul class="nav pull-right">
+				<li>
+					<span class="brand">{{ registry.ui.login }}</span>
+				</li>
+				<li style="margin-right: 30px; text-align: center">
+					<div id="user_quota"></div>
+				</li>
+				<li>
+					<a href="{{ registry.uri }}exit/">
+						<i class="icon-remove icon-white"></i>
+						Exit
+					</a>
+				</li>	
+			</ul>
+		</div>
+	</div>
 </div>
-</div>
-<!-- /TOP -->
 
 <!-- CONTENT -->
-<div id="container">
+<div class="container-fluid">
+<div class="row-fluid">
 
-<div id="content">
-    {{ main_content }}
+{% if leftBlock %}
+<div id="leftContent">
+{{ leftBlock }}
 </div>
 
+<div id="wsContent"></div>
+
+<div id="rightContent">
+	<div style="padding: 0 20px">
+    	{{ main_content }}
+    </div>
+</div>
+{% else %}
+<div class="container">
+	{{ main_content }}
+</div>
+{% endif %}
+
+
+
+</div>
 </div>
 <!-- /CONTENT -->
+
+{% if bottom %}
+<div id="bottomPanel">
+<div class="well" style="margin-bottom: 0">
+	{{ bottom }}
+</div>
+</div>
+{% endif %}
 
 </body>
 </html>

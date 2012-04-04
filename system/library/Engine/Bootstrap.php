@@ -22,7 +22,7 @@
         $this->setInit();
 
         $preload = new Preload();
-        $preload->run();
+        $preload->start();
 
         $router = $this->setRouter();
 
@@ -45,14 +45,12 @@
         if (empty($action)) { $action = ''; };
 
         $this->_config["url"] = "/" . $action;
-        
 
         if (!empty($action)) {
             $this->_config["uri"] = substr($this->_config["uri"], 0, strrpos($this->_config["uri"], $action));
         }
         
         $this->_config["uripath"] = substr($this->registry["uri"], 0, strlen($this->registry["uri"])-1) . $this->registry["url"];
-        $this->registry->set('url_convert', str_replace('/', '_', $action));
 
         foreach($this->_config as $key=>$val) {
         	$this->registry->set($key, $val);
@@ -95,8 +93,6 @@
      
      public function setInit() {
         mb_internal_encoding("UTF-8");
-
-		session_start();
      }
 
      public function setRouter() {

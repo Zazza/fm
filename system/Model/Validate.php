@@ -6,12 +6,12 @@ class Model_Validate extends Engine_Model {
 	        $err = null;
 	
 			if ( !preg_match( '/^[0-9A-Za-z_-]{4,31}$/', $login ) ) {
-				$err = 'Логин должен состоять из символов английского алфавита, быть длиной не менее 4 и не более 31 символов! Из специальных символов разрешается использовать символы: "-", "_"';
+				$err = 'Login should consist of symbols of the English alphabet, to be length not less than 4 and no more than 31 symbols! From special symbols it is authorized to use symbols: "-", "_"';
 			}
 	        
 	        if ($err == null) {
 	            if ($this->registry["module_user"]->issetLogin($login)) {
-	                $err = "Пользователь с таким логином уже зарегистрирован!";
+	                $err = "Such user is already registered!";
 	            }
 	        }
 	
@@ -25,7 +25,7 @@ class Model_Validate extends Engine_Model {
         $err = null;
         
         if ( !preg_match( '/^[0-9A-Za-z_-]{6,31}$/', $password ) ) {
-			$err = 'Пароль должен состоять из символов английского алфавита, быть длиной не менее 6 и не более 31 символов! Из специальных символов разрешается использовать символы: "-", "_"';
+			$err = 'Password should consist of symbols of the English alphabet, to be length not less than 6 and no more than 31 symbols! From special symbols it is authorized to use symbols: "-", "_"';
 		}
         
         if ($err != null) {

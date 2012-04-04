@@ -88,5 +88,30 @@ class Controller_Ajax_Users extends Engine_Ajax {
          
         echo $cat["name"];
     }
+    
+    public function getUserQuota() {
+    	$now_big = $now = $this->muser->getNowSize();
+    	
+    	if (($now / 1024) > 1) {
+    		$now = round($now / 1024, 2) . "&nbsp;Kb";
+    	} else { $now = round($now, 2) . "&nbsp;B";
+    	};
+    	if (($now / 1024) > 1) {
+    		$now = round($now / 1024, 2) . "&nbsp;Mb";
+    	};
+    	
+    	$quota_big = $quota = $this->muser->getUserQuota();
+    	
+    	if (($quota / 1024) > 1) {
+    		$quota = round($quota / 1024, 2) . "&nbsp;Kb";
+    	} else { $quota = round($quota, 2) . "&nbsp;B";
+    	};
+    	if (($quota / 1024) > 1) {
+    		$quota = round($quota / 1024, 2) . "&nbsp;Mb";
+    	};
+    	
+    	$percent = round($now_big / $quota_big * 100, 0);
+    	echo $this->view->render("users_quota", array("now" => $now, "quota" => $quota, "percent" => $percent));
+    }
 }
 ?>

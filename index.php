@@ -31,7 +31,4 @@ set_include_path($paths);
 
 $bootstrap = new Engine_Bootstrap();
 $bootstrap->run($config);
-
-//$g_time = floatval( microtime() - $start_time );
-//echo $g_time;
 ?>

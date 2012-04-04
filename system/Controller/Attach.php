@@ -16,19 +16,19 @@ class Controller_Attach extends Engine_Controller {
 					$right = json_decode($data[0]["right"], true);
 					foreach($right as $key=>$val) {
 						if ($key == "frall") {
-							if ($val == "true") {
+							if ($val > 0) {
 								$flag = true;
 							}
 						}
 						
 						if ($key == "fg" . $this->registry["ui"]["gid"]) {
-							if ($val == "true") {
+							if ($val > 0) {
 								$flag = true;
 							}
 						}
 						
 						if ($key == "user" . $this->registry["ui"]["id"]) {
-							if ($val == "true") {
+							if ($val > 0) {
 								$flag = true;
 							}
 						}
@@ -57,15 +57,10 @@ class Controller_Attach extends Engine_Controller {
 		if (isset($_GET["filename"])) {
 			$filename = $_GET["filename"];
 			if (!strpos($filename, "/")) {
-				
-				$fm = & $_SESSION["fm"];
-				if (isset($fm["dir"])) {
-		        	$curdir = $fm["dir"];
-		        } else {
-					$curdir = 0;
-				}
 
-				$data = $data = $mfile->attachFromName($filename, $curdir);
+				$curdir = $_GET["did"];
+
+				$data = $mfile->attachFromName($filename, $curdir);
 				
 				$flag = false;
 				if ($this->registry["ui"]["id"] == $data[0]["uid"]) {
@@ -75,19 +70,19 @@ class Controller_Attach extends Engine_Controller {
 					$right = json_decode($data[0]["right"], true);
 					foreach($right as $key=>$val) {
 						if ($key == "frall") {
-							if ($val == "true") {
+							if ($val > 0) {
 								$flag = true;
 							}
 						}
 						
 						if ($key == "fg" . $this->registry["ui"]["gid"]) {
-							if ($val == "true") {
+							if ($val > 0) {
 								$flag = true;
 							}
 						}
 						
 						if ($key == "user" . $this->registry["ui"]["id"]) {
-							if ($val == "true") {
+							if ($val > 0) {
 								$flag = true;
 							}
 						}

@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Фев 09 2012 г., 14:41
--- Версия сервера: 5.1.58
--- Версия PHP: 5.3.9-1
+-- Время создания: Апр 02 2012 г., 20:15
+-- Версия сервера: 5.1.61
+-- Версия PHP: 5.4.0-3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
@@ -16,7 +16,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET NAMES utf8 */;
 
 --
--- База данных: `fm`
+-- База данных: `fm3`
 --
 
 -- --------------------------------------------------------
@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `login` varchar(32) NOT NULL,
   `pass` varchar(32) NOT NULL,
+  `quota` bigint(20) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `login` (`login`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
@@ -171,8 +172,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id`, `login`, `pass`) VALUES
-(1, 'filemanager', '3609b8f2a7b5b478d1f11ef8ffebbb1a');
+INSERT INTO `users` (`id`, `login`, `pass`, `quota`) VALUES
+(1, 'filemanager', '3609b8f2a7b5b478d1f11ef8ffebbb1a', 104857600);
 
 -- --------------------------------------------------------
 
@@ -192,7 +193,7 @@ CREATE TABLE IF NOT EXISTS `users_group` (
 --
 
 INSERT INTO `users_group` (`id`, `name`) VALUES
-(1, 'Пользователи');
+(1, 'Users');
 
 -- --------------------------------------------------------
 
@@ -202,19 +203,17 @@ INSERT INTO `users_group` (`id`, `name`) VALUES
 
 CREATE TABLE IF NOT EXISTS `users_priv` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
   `admin` tinyint(1) NOT NULL DEFAULT '0',
   `group` smallint(6) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`uid`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
 -- Дамп данных таблицы `users_priv`
 --
 
-INSERT INTO `users_priv` (`id`, `uid`, `admin`, `group`) VALUES
-(1, 1, 1, 1);
+INSERT INTO `users_priv` (`id`, `admin`, `group`) VALUES
+(1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -236,4 +235,4 @@ CREATE TABLE IF NOT EXISTS `users_subgroup` (
 --
 
 INSERT INTO `users_subgroup` (`id`, `pid`, `name`) VALUES
-(1, 1, 'Администраторы');
+(1, 1, 'Administrators');

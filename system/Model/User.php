@@ -6,7 +6,7 @@ class Model_User extends Engine_Model {
     public function getUserInfo($uid) {
     	$data = array();
     
-    	$sql = "SELECT users.id AS id, users.login AS `login`, users.pass AS pass, p.admin AS admin, g.id AS gid, p.group, g.name AS gname
+    	$sql = "SELECT users.id AS id, users.login AS `login`, users.pass, users.quota,  p.admin AS admin, g.id AS gid, p.group, g.name AS gname
                 FROM users 
                 LEFT JOIN users_priv AS p ON (users.id = p.id)
                 LEFT JOIN users_subgroup AS g ON (p.group = g.id)
@@ -73,10 +73,10 @@ class Model_User extends Engine_Model {
         return $data;
     }
     
-    public function addUser($login, $pass) {
-        $sql = "INSERT INTO users (login, pass) VALUES (:login, :pass)";
+    public function addUser($login, $pass, $val) {
+        $sql = "INSERT INTO users (login, pass, quota) VALUES (:login, :pass, :quota)";
         $res = $this->registry['db']->prepare($sql);
-		$param = array(":login" => $login, ":pass" => md5(md5($pass)));
+		$param = array(":login" => $login, ":pass" => md5(md5($pass)), ":quota" => $val);
 		$res->execute($param);
 
 		$uid = $this->registry['db']->lastInsertId();
@@ -91,16 +91,16 @@ class Model_User extends Engine_Model {
             $admin = 0;
         }
         
-        $sql = "INSERT INTO users_priv (uid, admin, `group`) VALUES (:uid, :admin, :group)";
+        $sql = "INSERT INTO users_priv (id, admin, `group`) VALUES (:id, :admin, :group)";
         $res = $this->registry['db']->prepare($sql);
-		$param = array(":uid" => $uid, ":admin" => $admin, ":group" => $gname);
+		$param = array(":id" => $uid, ":admin" => $admin, ":group" => $gname);
 		$res->execute($param);
     }
     
-    public function editUser($uid, $login) {
-        $sql = "UPDATE users SET `login` = :login WHERE id = :id LIMIT 1";
+    public function editUser($uid, $login, $val) {
+        $sql = "UPDATE users SET `login` = :login, quota = :quota WHERE id = :id LIMIT 1";
         $res = $this->registry['db']->prepare($sql);
-		$param = array(":id" => $uid, ":login" => $login);
+		$param = array(":id" => $uid, ":login" => $login, ":quota" => $val);
 		$res->execute($param);
     }
     
@@ -470,6 +470,56 @@ class Model_User extends Engine_Model {
 		}
 		
 		return $uniq;
+	}
+	
+	function getNowSize() {
+		$sql = "SELECT SUM(f.size) AS sum
+		FROM fm_fs AS f
+		LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
+		WHERE h.uid = :id";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":id" => $this->registry["ui"]["id"]);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		return $data[0]["sum"];
+	}
+	
+	function getUserQuota() {
+		$sql = "SELECT quota FROM users WHERE id = :id LIMIT 1";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$param = array(":id" => $this->registry["ui"]["id"]);
+		$res->execute($param);
+		$data = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		return $data[0]["quota"];
+	}
+	
+	function getTotal() {
+		$sql = "SELECT SUM(size) AS sum FROM fm_fs";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$res->execute();
+		$row = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		$data["all"] = $row[0]["sum"];
+		
+		$sql = "SELECT SUM(f.size) AS sum, u.login AS `login`, u.quota AS `quota`
+		FROM fm_fs AS f
+		LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
+		LEFT JOIN users AS u ON (u.id = h.uid)
+		GROUP BY h.uid
+		ORDER BY sum DESC";
+		
+		$res = $this->registry['db']->prepare($sql);
+		$res->execute();
+		$row = $res->fetchAll(PDO::FETCH_ASSOC);
+		
+		$data["users"] = $row;
+		
+		return $data;
 	}
 }
 ?>
