@@ -1,11 +1,11 @@
 <span style="float: left; margin-right: 10px" class="btn btn-primary" onclick="shUploader()">Upload files</span>
 
 <span style="float: left" onclick="copyFiles()" class="btn" id="btnCopy">
-	C Copy
+	Copy <code>C</code>
 </span>
 
 <span style="float: left" onclick="pastFiles()"  class="btn" id="btnPast">
-	P Past
+	Past <code>P</code>
 </span>
 
 <ul class="dropdown dropdown-horizontal dropdown-upward">
@@ -16,11 +16,11 @@
 </ul>
 
 <span style="float: left" onclick="createDirDialog()" class="btn">
-	Ins Create
+	Create <code>Ins</code>
 </span>
 
 <span style="float: left" onclick="delmany()" class="btn">
-	Del Remove
+	Remove <code>Del</code>
 </span>
 
 {% if registry.ui.admin %}
