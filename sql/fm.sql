@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Апр 02 2012 г., 20:15
+-- Время создания: Апр 04 2012 г., 14:14
 -- Версия сервера: 5.1.61
 -- Версия PHP: 5.4.0-3
 
@@ -16,7 +16,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET NAMES utf8 */;
 
 --
--- База данных: `fm3`
+-- База данных: `fm5`
 --
 
 -- --------------------------------------------------------
@@ -156,10 +156,10 @@ CREATE TABLE IF NOT EXISTS `fm_text` (
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `users`
+-- Структура таблицы `fm_users`
 --
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE IF NOT EXISTS `fm_users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `login` varchar(32) NOT NULL,
   `pass` varchar(32) NOT NULL,
@@ -169,19 +169,19 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
--- Дамп данных таблицы `users`
+-- Дамп данных таблицы `fm_users`
 --
 
-INSERT INTO `users` (`id`, `login`, `pass`, `quota`) VALUES
+INSERT INTO `fm_users` (`id`, `login`, `pass`, `quota`) VALUES
 (1, 'filemanager', '3609b8f2a7b5b478d1f11ef8ffebbb1a', 104857600);
 
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `users_group`
+-- Структура таблицы `fm_users_group`
 --
 
-CREATE TABLE IF NOT EXISTS `users_group` (
+CREATE TABLE IF NOT EXISTS `fm_users_group` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
   PRIMARY KEY (`id`),
@@ -189,19 +189,19 @@ CREATE TABLE IF NOT EXISTS `users_group` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
--- Дамп данных таблицы `users_group`
+-- Дамп данных таблицы `fm_users_group`
 --
 
-INSERT INTO `users_group` (`id`, `name`) VALUES
+INSERT INTO `fm_users_group` (`id`, `name`) VALUES
 (1, 'Users');
 
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `users_priv`
+-- Структура таблицы `fm_users_priv`
 --
 
-CREATE TABLE IF NOT EXISTS `users_priv` (
+CREATE TABLE IF NOT EXISTS `fm_users_priv` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `admin` tinyint(1) NOT NULL DEFAULT '0',
   `group` smallint(6) NOT NULL DEFAULT '0',
@@ -209,19 +209,19 @@ CREATE TABLE IF NOT EXISTS `users_priv` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
--- Дамп данных таблицы `users_priv`
+-- Дамп данных таблицы `fm_users_priv`
 --
 
-INSERT INTO `users_priv` (`id`, `admin`, `group`) VALUES
+INSERT INTO `fm_users_priv` (`id`, `admin`, `group`) VALUES
 (1, 1, 1);
 
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `users_subgroup`
+-- Структура таблицы `fm_users_subgroup`
 --
 
-CREATE TABLE IF NOT EXISTS `users_subgroup` (
+CREATE TABLE IF NOT EXISTS `fm_users_subgroup` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pid` int(11) NOT NULL,
   `name` varchar(64) NOT NULL,
@@ -231,8 +231,8 @@ CREATE TABLE IF NOT EXISTS `users_subgroup` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 --
--- Дамп данных таблицы `users_subgroup`
+-- Дамп данных таблицы `fm_users_subgroup`
 --
 
-INSERT INTO `users_subgroup` (`id`, `pid`, `name`) VALUES
+INSERT INTO `fm_users_subgroup` (`id`, `pid`, `name`) VALUES
 (1, 1, 'Administrators');

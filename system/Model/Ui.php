@@ -2,7 +2,7 @@
 class Model_Ui extends Engine_Model {
 
 	public function login($login, $pass) {
-		$sql = "SELECT * FROM users WHERE login = :login AND pass != '' LIMIT 1";
+		$sql = "SELECT * FROM fm_users WHERE login = :login AND pass != '' LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":login" => $login);
@@ -26,12 +26,11 @@ class Model_Ui extends Engine_Model {
 	
 	public function getInfo($loginSession) {
 		$data = array();
-		
 
 		$sql = "SELECT users.id AS id, users.login AS `login`, users.pass AS pass, p.admin AS admin, g.id AS gid, p.group, g.name AS gname
-                FROM users 
-                LEFT JOIN users_priv AS p ON (users.id = p.id)
-                LEFT JOIN users_subgroup AS g ON (p.group = g.id)
+                FROM fm_users AS users
+                LEFT JOIN fm_users_priv AS p ON (users.id = p.id)
+                LEFT JOIN fm_users_subgroup AS g ON (p.group = g.id)
                 WHERE users.id = :uid LIMIT 1";
 		 
 		$res = $this->registry['db']->prepare($sql);
@@ -50,8 +49,6 @@ class Model_Ui extends Engine_Model {
 		} else {
 			$this->registry->set("auth", FALSE);
 			session_destroy();
-			
-			$this->stopSess($loginSession["id"]);
 		}
 	}
 }

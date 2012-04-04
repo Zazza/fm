@@ -7,9 +7,9 @@ class Model_User extends Engine_Model {
     	$data = array();
     
     	$sql = "SELECT users.id AS id, users.login AS `login`, users.pass, users.quota,  p.admin AS admin, g.id AS gid, p.group, g.name AS gname
-                FROM users 
-                LEFT JOIN users_priv AS p ON (users.id = p.id)
-                LEFT JOIN users_subgroup AS g ON (p.group = g.id)
+                FROM fm_users AS users 
+                LEFT JOIN fm_users_priv AS p ON (users.id = p.id)
+                LEFT JOIN fm_users_subgroup AS g ON (p.group = g.id)
                 WHERE users.id = :uid LIMIT 1";
     		 
     	$res = $this->registry['db']->prepare($sql);
@@ -27,7 +27,7 @@ class Model_User extends Engine_Model {
 
     public function getGidFromUid($uid) {
 		$sql = "SELECT up.group AS `group`
-        FROM users_priv AS up
+        FROM fm_users_priv AS up
         WHERE up.id = :uid LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
@@ -42,7 +42,7 @@ class Model_User extends Engine_Model {
     
     public function getUserId($login) {
 		$sql = "SELECT id 
-        FROM users
+        FROM fm_users
         WHERE login = :login
         LIMIT 1";
 		
@@ -60,9 +60,9 @@ class Model_User extends Engine_Model {
         $data = array();
                     
 		$sql = "SELECT users.id AS uid, users.login AS login, users.pass AS pass, p.admin AS admin, g.id AS gid, g.name AS gname 
-        FROM users 
-        LEFT JOIN users_priv AS p ON (users.id = p.id)
-        LEFT JOIN users_subgroup AS g ON (p.group = g.id)
+        FROM fm_users AS users
+        LEFT JOIN fm_users_priv AS p ON (users.id = p.id)
+        LEFT JOIN fm_users_subgroup AS g ON (p.group = g.id)
         WHERE g.id = :gid";
 		
 		$res = $this->registry['db']->prepare($sql);
@@ -74,7 +74,7 @@ class Model_User extends Engine_Model {
     }
     
     public function addUser($login, $pass, $val) {
-        $sql = "INSERT INTO users (login, pass, quota) VALUES (:login, :pass, :quota)";
+        $sql = "INSERT INTO fm_users (login, pass, quota) VALUES (:login, :pass, :quota)";
         $res = $this->registry['db']->prepare($sql);
 		$param = array(":login" => $login, ":pass" => md5(md5($pass)), ":quota" => $val);
 		$res->execute($param);
@@ -91,21 +91,21 @@ class Model_User extends Engine_Model {
             $admin = 0;
         }
         
-        $sql = "INSERT INTO users_priv (id, admin, `group`) VALUES (:id, :admin, :group)";
+        $sql = "INSERT INTO fm_users_priv (id, admin, `group`) VALUES (:id, :admin, :group)";
         $res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $uid, ":admin" => $admin, ":group" => $gname);
 		$res->execute($param);
     }
     
     public function editUser($uid, $login, $val) {
-        $sql = "UPDATE users SET `login` = :login, quota = :quota WHERE id = :id LIMIT 1";
+        $sql = "UPDATE fm_users SET `login` = :login, quota = :quota WHERE id = :id LIMIT 1";
         $res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $uid, ":login" => $login, ":quota" => $val);
 		$res->execute($param);
     }
     
     public function editUserPass($uid, $pass) {
-        $sql = "UPDATE users SET pass = :pass WHERE id = :id LIMIT 1";
+        $sql = "UPDATE fm_users SET pass = :pass WHERE id = :id LIMIT 1";
         $res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $uid, ":pass" => md5(md5($pass)));
 		$res->execute($param);
@@ -118,7 +118,7 @@ class Model_User extends Engine_Model {
             $admin = 0;
         }
         
-        $sql = "UPDATE users_priv SET id = :id, admin = :admin, `group` = :group WHERE id = :id LIMIT 1";
+        $sql = "UPDATE fm_users_priv SET id = :id, admin = :admin, `group` = :group WHERE id = :id LIMIT 1";
         $res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $uid, ":admin" => $admin, ":group" => $gname);
 		$res->execute($param);
@@ -126,9 +126,9 @@ class Model_User extends Engine_Model {
     
     public function getUsersList() {
 		$sql = "SELECT users.id AS id, users.login AS login, p.admin AS admin, p.group AS gid, g.name AS gname
-        FROM users 
-        LEFT JOIN users_priv AS p ON (users.id = p.id)
-        LEFT JOIN users_group AS g ON (p.group = g.id)
+        FROM fm_users AS users
+        LEFT JOIN fm_users_priv AS p ON (users.id = p.id)
+        LEFT JOIN fm_users_group AS g ON (p.group = g.id)
         ORDER BY users.id";
 		
 		$res = $this->registry['db']->prepare($sql);
@@ -139,7 +139,7 @@ class Model_User extends Engine_Model {
     }
     
 	public function issetLogin($login) {
-		$sql = "SELECT COUNT(id) AS count FROM users WHERE login = :login";
+		$sql = "SELECT COUNT(id) AS count FROM fm_users WHERE login = :login";
 
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":login" => $login);
@@ -156,13 +156,13 @@ class Model_User extends Engine_Model {
 	}
 
     public function delUser($uid) {
-		$sql = "DELETE FROM users WHERE id = :uid LIMIT 1";
+		$sql = "DELETE FROM fm_users WHERE id = :uid LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":uid" => $uid);
 		$res->execute($param);
         
-		$sql = "DELETE FROM users_priv WHERE id = :uid LIMIT 1";
+		$sql = "DELETE FROM fm_users_priv WHERE id = :uid LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":uid" => $uid);
@@ -171,8 +171,8 @@ class Model_User extends Engine_Model {
     
     public function getGroups() {
 		$sql = "SELECT ug.id AS pid, ug.name AS pname, usg.id AS sid, usg.name AS sname
-        FROM users_group AS ug
-        LEFT JOIN users_subgroup AS usg ON (usg.pid = ug.id)
+        FROM fm_users_group AS ug
+        LEFT JOIN fm_users_subgroup AS usg ON (usg.pid = ug.id)
         ORDER BY ug.id";
 		
 		$res = $this->registry['db']->prepare($sql);
@@ -185,7 +185,7 @@ class Model_User extends Engine_Model {
     
     public function getUniqGroups() {
 		$sql = "SELECT ug.id AS pid, ug.name AS pname
-        FROM users_group AS ug
+        FROM fm_users_group AS ug
         ORDER BY ug.id";
 		
 		$res = $this->registry['db']->prepare($sql);
@@ -198,7 +198,7 @@ class Model_User extends Engine_Model {
 
     public function getGroupName($gid) {
 		$sql = "SELECT `name` 
-        FROM users_group
+        FROM fm_users_group
         WHERE id = :gid
         LIMIT 1";
 		
@@ -214,7 +214,7 @@ class Model_User extends Engine_Model {
     
     public function getSubgroupName($sid) {
 		$sql = "SELECT `name` 
-        FROM users_subgroup
+        FROM fm_users_subgroup
         WHERE id = :sid
         LIMIT 1";
 		
@@ -228,7 +228,7 @@ class Model_User extends Engine_Model {
     
     public function getSubgroups($pid) {
 		$sql = "SELECT id, `name` 
-        FROM users_subgroup
+        FROM fm_users_subgroup
         WHERE pid = :pid
         ORDER BY id";
 		
@@ -241,7 +241,7 @@ class Model_User extends Engine_Model {
     }
     
     public function addSubgroup($pid, $name) {
-    	$sql = "INSERT INTO users_subgroup (pid, name) VALUES (:pid, :name)";
+    	$sql = "INSERT INTO fm_users_subgroup (pid, name) VALUES (:pid, :name)";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":pid" => $pid, ":name" => $name);
@@ -249,7 +249,7 @@ class Model_User extends Engine_Model {
     }
     
 	public function delSubgroup($id) {
-		$sql = "DELETE FROM users_subgroup WHERE id = :id LIMIT 1";
+		$sql = "DELETE FROM fm_users_subgroup WHERE id = :id LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $id);
@@ -257,7 +257,7 @@ class Model_User extends Engine_Model {
     }
     
 	public function editCat($id, $name) {
-		$sql = "UPDATE users_subgroup SET name = :name WHERE id = :id LIMIT 1";
+		$sql = "UPDATE fm_users_subgroup SET name = :name WHERE id = :id LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $id, ":name" => $name);
@@ -268,7 +268,7 @@ class Model_User extends Engine_Model {
         $data = array();
         
 		$sql = "SELECT id, name
-        FROM users_subgroup
+        FROM fm_users_subgroup
         WHERE id = :id
         LIMIT 1";
 		
@@ -283,9 +283,9 @@ class Model_User extends Engine_Model {
         $data = array();
         
         $sql = "SELECT u.id, ug.id AS gid, ug.name AS gname
-        FROM users AS u
-        LEFT JOIN users_priv AS up ON (up.id = u.id)
-        LEFT JOIN users_subgroup AS ug ON (ug.id = up.group)
+        FROM fm_users AS u
+        LEFT JOIN fm_users_priv AS up ON (up.id = u.id)
+        LEFT JOIN fm_users_subgroup AS ug ON (ug.id = up.group)
         GROUP BY up.id";
         
         $res = $this->registry['db']->prepare($sql);
@@ -297,7 +297,7 @@ class Model_User extends Engine_Model {
     
     public function getGroupId($gname) {
 		$sql = "SELECT id 
-        FROM users_group
+        FROM fm_users_group
         WHERE `name` = :gname
         LIMIT 1";
 		
@@ -311,7 +311,7 @@ class Model_User extends Engine_Model {
     
     public function getSubgroupId($subgname) {
     	$sql = "SELECT id
-            FROM users_subgroup
+            FROM fm_users_subgroup
             WHERE `name` = :gname
             LIMIT 1";
     
@@ -331,7 +331,7 @@ class Model_User extends Engine_Model {
         }
         
 		$sql = "SELECT id
-        FROM users_group
+        FROM fm_users_group
         WHERE `name` = :name
         LIMIT 1";
 		
@@ -347,7 +347,7 @@ class Model_User extends Engine_Model {
         }
         
         if ($flag) {
-    		$sql = "INSERT INTO users_group (`name`) VALUES (:name)";
+    		$sql = "INSERT INTO fm_users_group (`name`) VALUES (:name)";
     		
     		$res = $this->registry['db']->prepare($sql);
     		$param = array(":name" => htmlspecialchars($gname));
@@ -365,7 +365,7 @@ class Model_User extends Engine_Model {
         }
         
 		$sql = "SELECT id
-        FROM users_group
+        FROM fm_users_group
         WHERE `name` = :name
         LIMIT 1";
 		
@@ -383,7 +383,7 @@ class Model_User extends Engine_Model {
         }
         
         if ($flag) {
-    		$sql = "UPDATE users_group SET `name` = :gname WHERE id = :gid LIMIT 1";
+    		$sql = "UPDATE fm_users_group SET `name` = :gname WHERE id = :gid LIMIT 1";
     		
     		$res = $this->registry['db']->prepare($sql);
     		$param = array(":gid" => $gid, ":gname" => htmlspecialchars($gname));
@@ -396,7 +396,7 @@ class Model_User extends Engine_Model {
     }
     
     public function delGroup($gid) {
-		$sql = "DELETE FROM users_group WHERE id = :gid LIMIT 1";
+		$sql = "DELETE FROM fm_users_group WHERE id = :gid LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":gid" => $gid);
@@ -487,7 +487,7 @@ class Model_User extends Engine_Model {
 	}
 	
 	function getUserQuota() {
-		$sql = "SELECT quota FROM users WHERE id = :id LIMIT 1";
+		$sql = "SELECT quota FROM fm_users WHERE id = :id LIMIT 1";
 		
 		$res = $this->registry['db']->prepare($sql);
 		$param = array(":id" => $this->registry["ui"]["id"]);
@@ -509,7 +509,7 @@ class Model_User extends Engine_Model {
 		$sql = "SELECT SUM(f.size) AS sum, u.login AS `login`, u.quota AS `quota`
 		FROM fm_fs AS f
 		LEFT JOIN fm_fs_history AS h ON (h.fid = f.id)
-		LEFT JOIN users AS u ON (u.id = h.uid)
+		LEFT JOIN fm_users AS u ON (u.id = h.uid)
 		GROUP BY h.uid
 		ORDER BY sum DESC";
 		
