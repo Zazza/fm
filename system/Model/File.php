@@ -576,7 +576,7 @@ class Model_File extends Engine_Model {
 	
 		$res = $this->registry['db']->prepare($sql);
 		$res->execute();
-		$this->fm_groups = $res->fetchAll(PDO::FETCH_ASSOC);
+		$this->_groups = $res->fetchAll(PDO::FETCH_ASSOC);
 	
 		$sql = "SELECT u.id, ug.id AS gid, ug.name AS gname
 	        FROM fm_users AS u
@@ -586,7 +586,7 @@ class Model_File extends Engine_Model {
 	
 		$res = $this->registry['db']->prepare($sql);
 		$res->execute();
-		$this->fm_users = $res->fetchAll(PDO::FETCH_ASSOC);
+		$this->_users = $res->fetchAll(PDO::FETCH_ASSOC);
 	}
 	
 	function getGroups() {
