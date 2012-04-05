@@ -32,5 +32,22 @@ class Model_Validate extends Engine_Model {
             return $err;
         }
     }
+
+    public function quota_val($quota_val) {
+        $err = null;
+        
+
+		if ( preg_match( '/^0$/', $quota_val ) ) {
+			$err = 'Quota value should be a positive value';
+		}
+        elseif ( !preg_match( '/^[0-9]+$/', $quota_val ) ) {
+			$err = 'Quota value should consist of numeric characters';
+		}
+        
+        if ($err != null) {
+            return $err;
+        }
+    }
+
 }    
 ?>
