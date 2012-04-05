@@ -102,10 +102,10 @@ class Model_File extends Engine_Model {
 	
 	// FM AJAX
 	function getDirParams($did) {
-		$sql = "SELECT fd.id, fd.uid, fd.name AS `name`, fdc.right, users.login AS owner
+		$sql = "SELECT fd.id, fd.uid, fd.name AS `name`, fdc.right, fm_users.login AS owner
 		        FROM fm_dirs AS fd
 		        LEFT JOIN fm_dirs_chmod AS fdc ON (fdc.did = fd.id)
-		        LEFT JOIN users ON (users.id = fd.uid)
+		        LEFT JOIN fm_users ON (fm_users.id = fd.uid)
 		        WHERE fd.id = :did
 		        LIMIT 1";
 		
@@ -570,23 +570,23 @@ class Model_File extends Engine_Model {
 	
 	function getFileChmod() {
 		$sql = "SELECT ug.id AS pid, ug.name AS pname, usg.id AS sid, usg.name AS sname
-	        FROM users_group AS ug
-	        LEFT JOIN users_subgroup AS usg ON (usg.pid = ug.id)
+	        FROM fm_users_group AS ug
+	        LEFT JOIN fm_users_subgroup AS usg ON (usg.pid = ug.id)
 	        ORDER BY ug.id";
 	
 		$res = $this->registry['db']->prepare($sql);
 		$res->execute();
-		$this->_groups = $res->fetchAll(PDO::FETCH_ASSOC);
+		$this->fm__groups = $res->fetchAll(PDO::FETCH_ASSOC);
 	
 		$sql = "SELECT u.id, ug.id AS gid, ug.name AS gname
-	        FROM users AS u
-	        LEFT JOIN users_priv AS up ON (up.id = u.id)
-	        LEFT JOIN users_subgroup AS ug ON (ug.id = up.group)
+	        FROM fm_users AS u
+	        LEFT JOIN fm_users_priv AS up ON (up.id = u.id)
+	        LEFT JOIN fm_users_subgroup AS ug ON (ug.id = up.group)
 	        GROUP BY up.id";
 	
 		$res = $this->registry['db']->prepare($sql);
 		$res->execute();
-		$this->_users = $res->fetchAll(PDO::FETCH_ASSOC);
+		$this->fm_users = $res->fetchAll(PDO::FETCH_ASSOC);
 	}
 	
 	function getGroups() {
