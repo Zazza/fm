@@ -22,7 +22,12 @@ class Controller_Download extends Engine_Controller {
 					header ("Content-Length: " . filesize($file));
 					header ("Content-Disposition: attachment; filename=" . $filename);
 
-					readfile($file);
+					if ($this->registry["server"]["nginx_accel_redirect"] == true) {
+						header("X-Accel-Redirect: /upload/" . $fn);
+					}
+					else {
+						readfile($file);
+					}
 				} else {
 					echo $this->view->render("fileNotExist", array());
 				}
