@@ -25,6 +25,9 @@ class Controller_Users_Edituser extends Controller_Users {
 				}
 
 				$err = array();
+                if ($_POST["quota_val"] != $data["quota"]) {
+                    if ($txt = $validate->quota_val($_POST["quota_val"])) { $err[] = $txt; };
+                }
 				if ($_POST["login"] != $data["login"]) {
 					if ($txt = $validate->login($_POST["login"])) { $err[] = $txt; };
 				}
