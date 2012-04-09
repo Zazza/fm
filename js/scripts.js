@@ -457,11 +457,18 @@ function getfInfo(fname, i) {
 }
 
 function createDirDialog() {
-	$('<div title="New folder">Folder name:&nbsp;<input type="text" name="dirname" id="fm_dirname" /></div>').dialog({
+	$('<div title="New folder" id="diradddialog">Folder name:&nbsp;<input type="text" name="dirname" id="fm_dirname" /></div>').dialog({
 		modal: true,
 	    buttons: {
-	    	"Create": function() { createDir(); $(this).dialog("close"); },
-            "Close": function() { $(this).dialog("close"); }
+	    	"Create": function() {
+	    		createDir();
+				$("#diradddialog").remove();
+				$(this).dialog("close");
+			},
+            "Close": function() {
+            	$("#diradddialog").remove();
+            	$(this).dialog("close");
+            }
 		}
 	});
 }
