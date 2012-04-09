@@ -222,7 +222,10 @@ $(".fm_file").contextMenu('fileMenu', {
 $(".fm_dirs").contextMenu('dirMenu', {
     bindings: {
       'rd_open': function(t) {
-		chdir(t.title);
+		var id = t.id; 
+		id = id.substr(2);
+		chdir(id);
+
       },
       'rd_rename': function(t) {
 		dirRename(t.id);
