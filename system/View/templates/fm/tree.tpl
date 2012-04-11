@@ -32,7 +32,7 @@ $.ajax({
 	type: "POST",
  	async: false,
  	url: '{{ registry.uri }}ajax/fm/',
- 	data: "action=getUsersChmod&md5={{ md5 }}",
+ 	data: "did=" + did + "&action=getUsersChmod&md5={{ md5 }}",
  	dataType: 'json',
  	success: function(res) {
 		loadChmod(res);
@@ -46,7 +46,7 @@ function setChmod() {
     	type: "POST",
     	async: false,
     	url: '{{ registry.uri }}ajax/fm/',
-    	data: "action=addFileRight&json=" + json + "&md5={{ md5 }}",
+    	data: "did=" + did + "&action=addFileRight&json=" + json + "&md5={{ md5 }}",
     	success: function(res) { $("#setRight").html("Access modes are successfully changed!"); }
 	});
 }
