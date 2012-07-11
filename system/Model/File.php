@@ -37,6 +37,7 @@ class Model_File extends Engine_Model {
 				$ico = $this->_MIME[$i]["ico"];
 				if ($ico == "preview") {
 					$ico = $this->registry['path']['upload'] . "_thumb/" . $md5;
+					if (!is_readable($this->registry['path']['root'] . "/" . $ico)) { $ico = "img/ftypes/image.png"; }
 				} else {
 					$ico = "img/ftypes/" . $ico;
 				}

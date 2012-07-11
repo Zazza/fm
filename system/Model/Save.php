@@ -67,7 +67,7 @@ class Model_Save extends Engine_Model {
         $ext = $this->getExt();
 
         if ($this->save()) {
-            if ( (strtolower($ext) == "gif") or (strtolower($ext) == "png") or (strtolower($ext) == "jpg") or (strtolower($ext) == "jpeg") ) {
+            if  ( ($this->registry["fm"]["genImageThumb"] == true) and ( (strtolower($ext) == "gif") or (strtolower($ext) == "png") or (strtolower($ext) == "jpg") or (strtolower($ext) == "jpeg") ) ) {
                 $thumb = new Model_Thumb();
                 $thumb->img_resize($uploadDirectory . $this->md5, $_thumbPath . $this->md5, 150, 120);
             };
