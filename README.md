@@ -1,9 +1,10 @@
 # FILE MANAGER
 
-[Demo](http://bitboom.ru/fm/demo/)
-Login and Password: filemanager/filemanager
+[Demo](http://tushkan.com/demo/fm/)
 
-[Docs](http://bitboom.ru/)
+Login and Password: demo/demo
+
+Site: [http://tushkan.com/projects/ostora/](http://tushkan.com/projects/ostora/)
 
 ## Requirements
 PHP > 5.2
@@ -19,4 +20,6 @@ Database dump: /sql/fm.sql
 Login and Password: falemanager/filemanager
 
 ## License
-See COPYING file
+MIT
+
+See [COPYING](https://github.com/Zazza/fm/blob/master/COPYING) file
