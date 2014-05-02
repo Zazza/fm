@@ -1,8 +1,8 @@
 # FILE MANAGER
 
-[Demo](http://tushkan.com/demo/fm/)
+New separate project: [mediabox-php-yii](https://github.com/Zazza/mediabox-php-yii)
 
-Login and Password: demo/demo
+Oldest:
 
 Site: [http://tushkan.com/projects/ostora/](http://tushkan.com/projects/ostora/)
 
