@@ -17,7 +17,7 @@ chmod 777 /upload/ /upload/_thumb/
 
 Database dump: /sql/fm.sql
 
-Login and Password: falemanager/filemanager
+Login and Password: filemanager/filemanager
 
 ## License
 MIT
